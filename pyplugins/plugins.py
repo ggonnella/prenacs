@@ -8,8 +8,8 @@ def check_metadata_keys_defined():
   """
   Check that plugin metadata key definitions have been provided.
   """
-  if PLUGIN_METADATA_SCALAR_KEYS and PLUGIN_METADATA_LIST_KEYS and \
-      PLUGIN_METADATA_TUPLES_LIST_KEYS not in globals:
+  if "PLUGIN_METADATA_SCALAR_KEYS" and "PLUGIN_METADATA_LIST_KEYS" and \
+      "PLUGIN_METADATA_TUPLES_LIST_KEYS" not in globals():
     raise Exception("Plugin metadata keys not defined.\n" \
                 "Please define at least one of the following constants:\n" \
                 "PLUGIN_METADATA_SCALAR_KEYS, PLUGIN_METADATA_LIST_KEYS, " \

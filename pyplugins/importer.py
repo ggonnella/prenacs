@@ -10,6 +10,7 @@ from pathlib import Path
 from pyplugins.py_mod import py
 from pyplugins.rust_mod import rust
 from pyplugins.nim_mod import nim
+from pyplugins.bash_plugins import bash
 
 def importer(filename, verbose=False):
   """
@@ -25,6 +26,8 @@ def importer(filename, verbose=False):
   """
   if Path(filename).suffix == ".rs":
     m = rust(filename, verbose)
+  elif Path(filename).suffix == ".sh":
+    m = bash(filename, verbose)
   else:
     try:
       m = py(filename, verbose)

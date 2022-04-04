@@ -1,7 +1,7 @@
 import sh
 import imp
 from pathlib import Path
-from plugins import check_metadata_keys_defined
+from pyplugins.plugins import check_metadata_keys_defined
 
 PLUGIN_FUNCTIONS = ["compute"]
 
@@ -14,7 +14,7 @@ PLUGIN_METADATA_TUPLES_LIST_KEYS = ["PARAMETERS"]
 def _get_constant(filename, cname):
   return sh.bash("-c", f". {filename}; echo -e ${cname}").rstrip()
 
-def _import_constants(m, filename)
+def _import_constants(m, filename):
   check_metadata_keys_defined()
   for cname in PLUGIN_METADATA_SCALAR_KEYS:
     setattr(m, cname, _get_constant(filename, cname))
@@ -22,7 +22,7 @@ def _import_constants(m, filename)
     setattr(m, cname, _get_constant(filename, "{"+cname+"[@]}").split(" "))
   for cname in PLUGIN_METADATA_TUPLES_LIST_KEYS:
     setattr(m, cname,
-        [e.split("\t")) for e in _get_constant(filename,
+        [e.split("\t") for e in _get_constant(filename,
           "{"+cname+"[@]}").split("\n")])
 
 def _def_function(filename, funcname):
@@ -35,12 +35,13 @@ def _def_function(filename, funcname):
     if len(retvals) == 1:
       retvals.append("")
     return (retvals[0].split("\t"), retvals[1].split("\n"))
+  return _fn
 
 def check_plugin_functions_defined():
   """
   Check that a plugin functions list have been provided.
   """
-  if PLUGIN_FUNCTIONS not in globals:
+  if "PLUGIN_FUNCTIONS" not in globals():
     raise Exception("Plugin function list not defined.\n" \
                 "Please define the PLUGIN_FUNCTIONS constant.\n")
 
