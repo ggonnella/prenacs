@@ -4,3 +4,4 @@ tqdm
 schema
 docopt
 maturin==0.12.11
+pytest-console-scripts
