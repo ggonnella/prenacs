@@ -11,6 +11,7 @@ from pyplugins.py_mod import py
 from pyplugins.rust_mod import rust
 from pyplugins.nim_mod import nim
 from pyplugins.bash_mod import bash
+from pyplugins.error import UnsupportedLangError
 
 def importer(filename, api_config={}, verbose=False):
   """
@@ -23,6 +24,12 @@ def importer(filename, api_config={}, verbose=False):
   - a Bash script
     (for which a wrapper module is automatically generated)
 
+  The language of the module is deducted from the filename extension, which
+  must be one of: ".py", ".nim", ".rs", ".sh".
+
+  If api_config["disable_bash"] is set, then Bash scripts
+  are not supported.
+
   Return value:
   - the module, with:
     - an attribute __lang__ set to "python", "nim", "rust" or "bash"
@@ -33,21 +40,23 @@ def importer(filename, api_config={}, verbose=False):
 
   For the syntax of the API configuration dictionary, see the usage manual.
 
-  Assumptions:
-  - Rust modules file suffix is ".rs"
-  - Bash scripts file suffix is ".sh"
-
   Requirements:
   - Rust: see requirements in rust_mod.py
   - Nim: see requirements in nim_mod.py
   """
-  if Path(filename).suffix == ".rs":
+  suffix = Path(filename).suffix
+  if suffix == ".rs":
     m = rust(filename, api_config, verbose)
-  elif Path(filename).suffix == ".sh":
+  elif suffix == ".sh":
+    if api_config.get("disable_bash", False):
+      raise UnsupportedLangError("Bash scripts are not supported by this "+\
+                                  "application")
     m = bash(filename, api_config, verbose)
+  elif suffix == ".nim":
+    m = nim(filename, api_config, verbose)
+  elif suffix == ".py":
+    m = py(filename, api_config, verbose)
   else:
-    try:
-      m = py(filename, api_config, verbose)
-    except:
-      m = nim(filename, api_config, verbose)
+    raise UnsupportedLangError("Unsupported language, file suffix is: " \
+                                 + suffix)
   return m

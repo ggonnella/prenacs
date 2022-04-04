@@ -47,12 +47,17 @@ def _wrap_function(filename, funcname, required):
     def _fn(*args, **kwargs):
       args_str=" ".join(args)
       kwargs_str=" ".join([f"{k}={v}" for k, v in kwargs.items()])
-      retvals = \
-          sh.bash("-c", f". {filename}; {funcname} {args_str} {kwargs_str}").\
-                 rstrip().split("\n", 1)
-      if len(retvals) == 1:
-        retvals.append("")
-      return (retvals[0].split("\t"), retvals[1].split("\n"))
+      retval = str(sh.bash("-c",
+        f". {filename}; {funcname} {args_str} {kwargs_str}"))[:-2]
+      has_newlines = "\n" in retval
+      has_tabs = "\t" in retval
+      if has_newlines and has_tabs:
+        retval = [l.split("\t") for l in retval.split("\n")]
+      elif has_newlines:
+        retval = retval.split("\n")
+      elif has_tabs:
+        retval = retval.split("\t")
+      return retval
     return _fn
   elif required:
     raise InterfaceRequirementError(

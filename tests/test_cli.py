@@ -8,7 +8,7 @@ def test_bash(examples, testdata, script_runner):
   ret = script_runner.run(script_fn, plugin_fn, input_fn)
   assert ret.returncode == 0
   assert ret.stdout.rstrip() == "\t".join([input_fn,
-    "['800', '.41000000000000000000']", "['']"])
+    '800', '.410000000000000000'])
 
 def test_py(examples, testdata, script_runner):
   script_fn = examples("batch_compute.py")

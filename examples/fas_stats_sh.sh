@@ -11,7 +11,7 @@ REQ_SOFTWARE="grep, tr, wc, zcat"
 PARAMETERS=( "uncompressed\tbool\tFalse\tinput is not gzipped\n"
              "param2\tbool\tTrue\tbla bla")
 
-function compute() { local filename=$1 kwargs=$*
+function compute() { local filename=$1; shift; kwargs=$*
   for x in $kwargs; do eval $x; done
   if file $filename | grep 'gzip compressed' -q; then CAT=zcat; else CAT=cat; fi
   genomelen=$($CAT $filename | env -u GREP_OPTIONS grep -v '^>' | \
@@ -19,6 +19,5 @@ function compute() { local filename=$1 kwargs=$*
   gclen=$($CAT $filename | env -u GREP_OPTIONS grep -v '^>' | \
           tr -dc '[GCgc]' | wc -c)
   gc_content=$(echo $gclen/$genomelen | bc -l)
-  logs="" # newline-separated logs
-  echo -e ${genomelen}"\t"${gc_content}"\n"$logs"\n"
+  echo -en ${genomelen}"\t"${gc_content}
 }
