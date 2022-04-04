@@ -36,3 +36,15 @@ def test_nim(examples, testdata, script_runner):
   assert ret.returncode == 0
   assert ret.stdout.rstrip() == "\t".join([input_fn,
     "['800', '0.41']", "[]"])
+
+def test_with_state_py(examples, testdata, script_runner):
+  script_fn = examples("batch_compute.py")
+  plugin_fn = testdata("echo_plugin.py")
+  input_fn = testdata("example.fas")
+  ret = script_runner.run(script_fn, plugin_fn, input_fn)
+  assert ret.returncode == 0
+  assert ret.stdout.rstrip() == "\t".join([input_fn,
+    f"['{input_fn}']", "None"])
+  assert ret.stderr.rstrip() == "\n".join([
+    "initialized echo state: 0","echo state: 1","finalized echo state: 2"])
+

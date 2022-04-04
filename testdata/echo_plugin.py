@@ -3,7 +3,7 @@
 Echoes the input, for test purposes
 """
 
-from pathlib import Path
+import sys
 
 ID =      "echo"
 VERSION = "1.0"
@@ -13,7 +13,7 @@ OUTPUT =  ["echo"]
 class EchoState():
   def __init__(self):
     self.state = 0
-    print(f"initializing echo state: {self.state}...")
+    sys.stderr.write(f"initialized echo state: {self.state}\n")
 
   def __str__(self):
     self.inc()
@@ -24,7 +24,7 @@ class EchoState():
 
   def finalize(self):
     self.inc()
-    print(f"finalizing echo state: {self.state}...")
+    sys.stderr.write(f"finalized echo state: {self.state}\n")
 
 def initialize():
   return EchoState()
@@ -34,8 +34,5 @@ def finalize(state):
 
 def compute(unit, state=None, **kwargs):
   if state:
-    print(str(state))
+    sys.stderr.write(str(state) + "\n")
   return [unit], None
-
-def compute_id(filename):
-  return Path(filename).stem

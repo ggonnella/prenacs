@@ -26,7 +26,6 @@ import os
 import sys
 from pathlib import Path
 from glob import glob
-import tqdm
 import yaml
 import pyplugins
 
@@ -49,7 +48,7 @@ def main(args):
     state = plugin.initialize(**params.get("state", {}))
     params["state"] = state
   all_ids = glob(args["<globpattern>"])
-  for unit_id in tqdm.tqdm(all_ids):
+  for unit_id in all_ids:
     results = [unit_id] + [str(r) for r in plugin.compute(unit_id, **params)]
     print("\t".join(results))
   if plugin.finalize is not None:
