@@ -75,7 +75,7 @@ fn process_buffer(location: &mut Location, n_read: usize,
 }
 
 #[pyfunction]
-fn compute(filename: &str) -> PyResult<(u64, f64)> {
+fn compute(filename: &str) -> PyResult<((u64, f64), Vec<String>)> {
   let mut f = File::open(filename).unwrap();
     let mut buffer = [0; BUFSIZE];
     let mut count_gc: u64 = 0;
@@ -88,7 +88,7 @@ fn compute(filename: &str) -> PyResult<(u64, f64)> {
                        &mut count_gc, ISALPHATAB, ISGCTAB);
       }
     }
-  Ok((count_alpha, count_gc as f64 / count_alpha as f64))
+  Ok(((count_alpha, count_gc as f64 / count_alpha as f64), vec![]))
 }
 
 #[pymodule]
