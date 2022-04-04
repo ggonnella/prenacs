@@ -30,17 +30,29 @@ import tqdm
 import yaml
 import pyplugins
 
+PLUGIN_API_CONFIG = {}
+PLUGIN_API_CONFIG["required"] = \
+  {"functions": ["compute"],
+   "constants": {"strings": ["ID", "VERSION", "INPUT"],
+                 "lists": ["OUTPUT"]}}
+PLUGIN_API_CONFIG["optional"] = \
+  {"functions": ["initialize", "finalize"],
+   "constants": {"strings": ["METHOD", "IMPLEMENTATION", "ADVICE",
+                             "REQ_SOFTWARE", "REQ_HARDWARE"],
+                 "nested": ["PARAMETERS"]}}
+
 def main(args):
-  plugin = pyplugins.importer(args["<plugin>"], args["--verbose"])
+  plugin = pyplugins.importer(args["<plugin>"], PLUGIN_API_CONFIG,
+                              args["--verbose"])
   params = args["--params"]
-  if hasattr(plugin, "initialize"):
+  if plugin.initialize is not None:
     state = plugin.initialize(**params.get("state", {}))
     params["state"] = state
   all_ids = glob(args["<globpattern>"])
   for unit_id in tqdm.tqdm(all_ids):
     results = [unit_id] + [str(r) for r in plugin.compute(unit_id, **params)]
     print("\t".join(results))
-  if hasattr(plugin, "finalize"):
+  if plugin.finalize is not None:
     plugin.finalize(state)
 
 def validated(args):

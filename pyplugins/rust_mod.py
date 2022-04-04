@@ -12,6 +12,7 @@ import importlib
 from pathlib import Path
 import os
 from contextlib import contextmanager
+from pyplugins.api_config import apply_api_config
 
 _toml_content = """
 [package]
@@ -85,7 +86,7 @@ def _transfer_attrs_to_module(m, membername):
         setattr(m, k, getattr(member, k))
     delattr(m, membername)
 
-def rust(filename, verbose=False, import_constants=True):
+def rust(filename, api_config = {}, verbose=False):
   """
   Import a Rust module written using pyo3, compiling it with maturin.
 
@@ -98,15 +99,28 @@ def rust(filename, verbose=False, import_constants=True):
   removed, so that unnecessary recompilations are avoided. You may want to add
   "target" to .gitignore.
 
-  import_constants option:
-    if a class "Constants" is defined in the module, all attributes of the class
+  Requirements:
+  - rust compiler and cargo
+  - pyo3 (the maturin binary must be in path)
+
+  Constant definition mechanism:
+
+    If a class "Constants" is defined in the module, all attributes of the class
     are moved to the module and the class is deleted (if import_constants is
     True); this mechanism is used in order to be able to define module-scoped
     constants.
 
-  Requirements:
-  - rust compiler and cargo
-  - pyo3 (the maturin binary must be in path)
+    Example:
+
+      #[pyclass] struct Constants {}
+      #[pymethods]
+        impl Constants { #[classattr] const FOO: &'static str = "bar"; }
+
+    The name of the class ("Constants") can be changed setting the key
+    rust_const_klass of api_config.
+
+    If the key is set to an empty string, the constant definition
+    mechanism is disabled.
   """
   workingdir = Path(filename).parent
   modulename = Path(filename).stem
@@ -117,10 +131,15 @@ def rust(filename, verbose=False, import_constants=True):
   spec = importlib.util.spec_from_file_location(modulename, libfilename)
   m = importlib.util.module_from_spec(spec)
   spec.loader.exec_module(m)
-  if import_constants:
-    _transfer_attrs_to_module(m, "Constants")
+  info = [f"# rust module {modulename} imported from file {filename}\n"]
+  klass = api_config.get("rust_const_klass", "Constants")
+  if len(klass) > 0:
+    _transfer_attrs_to_module(m, klass)
+    info += apply_api_config(m, modulename, api_config, True)
+  else:
+    info += apply_api_config(m, modulename, api_config, False)
+    info.append("# constants definition mechanism disabled\n")
   if verbose:
-    sys.stderr.write(
-        f"# python module {modulename} imported from file {filename}\n")
+    sys.stderr.write("".join(info))
   m.__lang__ = "rust"
   return m
