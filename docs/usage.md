@@ -16,17 +16,34 @@ Listing functions and constants in the ``api_config`` parameters (see below)
 is necessary for Bash plugins. For plugins implemented in other languages,
 it is not necessary, but it can be employed for checking that the required
 functions and constants are defined and for specifying parameters of the
-constant importing mechanisms (see below).
+constant importing mechanisms.
+
+The definition of constants in the plugin modules is explained in
+the ``constants.md`` document, and the definition of functions
+in the ``functions.md`` document.
+
+# Limitations of Bash plugins
+
+Bash plugins have some limitations, compared to Python, Rust and Nim plugins:
+- a list of required and optional constants and functions _must_ be provided
+  in ``api_config`` -- this is usually not a big limitation, since the calling
+  code will usually know this information anyway in order to use those functions
+  and constants
+- the return type can only be string, a list of strings or a list of lists
+  of strings
+
+If this limitations are undesired in an application, bash plugins can be
+switched off by setting ``api_config["disable_bash"]`` (see below).
 
 # API Configuration
 
-The API configuration is provided to the module importing functions
-as the ``api_config`` parameter.
-
-It may contain the following keys:
-  - ``required``: section definining the required constants and functions
-  - ``optional``: section definining the optional constants and functions
-    (useful only for Bash plugins, see below)
+The API configuration parameter ``api_config`` of the importer functions
+is a dictionary. It may contain the following keys (any other key is ignored):
+  - ``required``: section definining the required constants and functions;
+    if they are not found, an exception is raised
+  - ``optional``: section definining the optional constants and functions;
+    if they are not found, they are set to None
+  - ``disable_bash``: disable support of bash plugins
   - ``nim_const_pfx``: a string, the prefix used for
     the Nim module constants definition mechanism (see below); the default
     value is ``py_const_``
@@ -34,23 +51,16 @@ It may contain the following keys:
     the Rust module constants definition mechanism (see below); the default
     value is ``Constants``
 
-Any other key is ignored.
-
-The two sections are dictionaries which may contain the following keys:
+The values for the two keys ``required`` and ``optional``
+are dictionaries which may contain the following keys:
   - functions: a list of function names to be imported
-  - constants: a dictionary of constants to be imported.
-    The keys are "strings", "lists", "nested" and "lists".
-    The values are lists of constant names.
-
-For constants and functions are defined unded the key "required", an error
-will be raised if they are not found. Constants and functions defined
-under the key "optional" will be imported if they are found, while their
-absence is silently ignored.
+  - constants: a dictionary of lists of "constants" to be imported.
+    The keys are "strings", "lists" and "nested".
+    The values are lists of names of constants.
 
 For Bash plugins any other function or variable defined in the script is
 not imported. Plugin developed in other languages import also any
-other defined function or constant: thus is this case it is not necessary
-to list them under the ``optional`` key.
+other defined function or constant.
 
 An example value of the ``api_config`` parameter:
 ```
@@ -65,4 +75,3 @@ An example value of the ``api_config`` parameter:
       },
     }
 ```
-
