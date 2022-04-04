@@ -7,7 +7,7 @@ import math
 import nimpy
 import zip/gzipfiles
 import tables
-import plugin_helpers
+import pyplugins_nim/plugin_helpers
 
 const
   ID =             "fas_stats_nim"
