@@ -1,5 +1,5 @@
 import sh
-import imp
+import importlib
 from pyplugins.error import InterfaceRequirementError
 from pathlib import Path
 
@@ -80,7 +80,8 @@ def bash(filename, api_config = {}, verbose = False):
   dictionary (see library documentation for the api_config syntax).
   """
   modulename=Path(filename).stem
-  m=imp.new_module(modulename)
+  spec=importlib.machinery.ModuleSpec(modulename, None)
+  m = importlib.util.module_from_spec(spec)
 
   imported_r_f = _import_functions(m, filename, api_config["required"], True)
   imported_o_f = _import_functions(m, filename, api_config["optional"], False)
