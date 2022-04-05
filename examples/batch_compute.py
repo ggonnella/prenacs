@@ -45,14 +45,13 @@ def main(args):
                               args["--verbose"])
   params = args["--params"]
   if plugin.initialize is not None:
-    state = plugin.initialize(**params.get("state", {}))
-    params["state"] = state
+    params["state"] = plugin.initialize()
   all_ids = glob(args["<globpattern>"])
   for unit_id in all_ids:
     results = [unit_id, str(plugin.compute(unit_id, **params))]
     print("\t".join(results))
   if plugin.finalize is not None:
-    plugin.finalize(state)
+    plugin.finalize(params["state"])
 
 def validated(args):
   s = {"<globpattern>": str, "<plugin>": os.path.exists,

@@ -39,14 +39,45 @@ def test_nim(examples, testdata, script_runner):
 
 def test_with_state_py(examples, testdata, script_runner):
   script_fn = examples("batch_compute.py")
-  plugin_fn = testdata("echo_plugin.py")
+  plugin_fn = testdata("py_w_state.py")
   input_fn = testdata("example.fas")
   ret = script_runner.run(script_fn, plugin_fn, input_fn)
   assert ret.returncode == 0
-  assert ret.stdout.rstrip() == "\t".join([input_fn,
-    f"(['{input_fn}'], None)"])
+  assert ret.stdout.rstrip() == "\t".join([input_fn, input_fn])
   assert ret.stderr.rstrip() == "\n".join([
-    "initialized echo state: 0","echo state: 1","finalized echo state: 2"])
+    "initialized state, count=0","count=1","finalized state, count=2"])
+
+@pytest.mark.script_launch_mode('subprocess')
+def test_with_state_nim(examples, testdata, script_runner):
+  script_fn = examples("batch_compute.py")
+  plugin_fn = testdata("nim_w_state.nim")
+  input_fn = testdata("example.fas")
+  ret = script_runner.run(script_fn, plugin_fn, input_fn)
+  assert ret.returncode == 0
+  assert ret.stdout.rstrip() == "\t".join([input_fn, input_fn])
+  assert ret.stderr.rstrip() == "\n".join([
+    "initialized state, count=0","count=1","finalized state, count=2"])
+
+@pytest.mark.script_launch_mode('subprocess')
+def test_with_state_rust(examples, testdata, script_runner):
+  script_fn = examples("batch_compute.py")
+  plugin_fn = testdata("rs_w_state.rs")
+  input_fn = testdata("example.fas")
+  ret = script_runner.run(script_fn, plugin_fn, input_fn)
+  assert ret.returncode == 0
+  assert ret.stdout.rstrip() == "\t".join([input_fn, input_fn])
+  assert ret.stderr.rstrip() == "\n".join([
+    "initialized state, count=0","count=1","finalized state, count=2"])
+
+def test_with_state_sh(examples, testdata, script_runner):
+  script_fn = examples("batch_compute.py")
+  plugin_fn = testdata("sh_w_state.sh")
+  input_fn = testdata("example.fas")
+  ret = script_runner.run(script_fn, plugin_fn, input_fn)
+  assert ret.returncode == 0
+  assert ret.stdout.rstrip() == "\t".join([input_fn, input_fn])
+  assert ret.stderr.rstrip() == "\n".join([
+    "initialized state, count=0","count=1","finalized state, count=2"])
 
 def test_bash_retval_types(examples, testdata, script_runner):
   script_fn = examples("batch_compute.py")
