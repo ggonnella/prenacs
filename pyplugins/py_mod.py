@@ -20,7 +20,7 @@ def py(filename, api_config = {}, verbose=False):
   spec.loader.exec_module(m)
 
   info = [f"# python module {modulename} imported from file {filename}\n"]
-  info += apply_api_config(m, modulename, api_config, verbose)
+  info += apply_api_config(m, modulename, api_config)
   if verbose:
     sys.stderr.write("".join(info))
   m.__lang__ = "python"

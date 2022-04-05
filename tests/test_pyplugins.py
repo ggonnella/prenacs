@@ -26,12 +26,6 @@ def test_auto_bash_fas_plugin(testdata, examples, fas_api_config):
   assert plugin.compute(testdata("example.fas")) == \
            ['800', '.41000000000000000000']
 
-def test_auto_bash_fas_plugin_disabled(testdata, examples, fas_api_config):
-  config = fas_api_config.copy()
-  config["disable_bash"] = True
-  with pytest.raises(pyplugins.error.UnsupportedLangError):
-    pyplugins.importer(examples("fas_stats_sh.sh"), config)
-
 def test_auto_rs_fas_plugin(testdata, examples, fas_api_config):
   plugin = pyplugins.importer(examples("fas_stats_rs.rs"), fas_api_config)
   assert plugin.compute(testdata("example.fas")) == \
@@ -46,4 +40,3 @@ def test_auto_nim_fas_plugin(testdata, examples, fas_api_config):
   plugin = pyplugins.importer(examples("fas_stats_nim.nim"), fas_api_config)
   assert plugin.compute(testdata("example.fas")) == \
            (["800", "0.41"], [])
-

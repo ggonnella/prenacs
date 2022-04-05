@@ -2,6 +2,7 @@ import sh
 import importlib
 from pyplugins.error import InterfaceRequirementError
 from pathlib import Path
+import sys
 
 def _has_constant(filename, cname):
   try:
@@ -21,18 +22,19 @@ def _get_constant(filename, cname, required):
 
 def _import_constants(m, filename, api_config, required):
   imported = {True: [], False: []}
-  for key in api_config["constants"].keys():
+  for key in api_config.get("constants", {}).keys():
     for cname in api_config["constants"][key]:
       if key == "list" or key == "nested":
-        cname = f"{{{cname}[@]}}"
-      cvalue = _get_constant(filename, cname, required)
-    if cvalue is None or key == "strings":
-      setattr(m, cname, cvalue)
-    elif key == "lists":
-      setattr(m, cname, cvalue.split(" "))
-    elif key == "nested":
-      setattr(m, cname, [e.split("\t") for e in cvalue.split("\n")])
-    imported[cvalue is not None].append(cname)
+        cvalue = _get_constant(filename, f"{{{cname}[@]}}", required)
+      else:
+        cvalue = _get_constant(filename, cname, required)
+      if cvalue is None or key == "strings":
+        setattr(m, cname, cvalue)
+      elif key == "lists":
+        setattr(m, cname, cvalue.split(" "))
+      elif key == "nested":
+        setattr(m, cname, [e.split("\t") for e in cvalue.split("\n")])
+      imported[cvalue is not None].append(cname)
   return imported
 
 def _has_function(filename, funcname):
@@ -69,13 +71,13 @@ def _wrap_function(filename, funcname, required):
 
 def _import_functions(m, filename, api_config, required):
   imported = {True: [], False: []}
-  for funcname in api_config["functions"]:
+  for funcname in api_config.get("functions", []):
     f=_wrap_function(filename, funcname, required)
     setattr(m, funcname, f)
     imported[f is not None].append(funcname)
   return imported
 
-def bash(filename, api_config = {}, verbose = False):
+def bash(filename, api_config = {}, verbose = True):
   """
   Creates a Python module which wraps a shell script.
   The functions and constants to be imported must be listed in the api_config
@@ -85,10 +87,14 @@ def bash(filename, api_config = {}, verbose = False):
   spec=importlib.machinery.ModuleSpec(modulename, None)
   m = importlib.util.module_from_spec(spec)
 
-  imported_r_f = _import_functions(m, filename, api_config["required"], True)
-  imported_o_f = _import_functions(m, filename, api_config["optional"], False)
-  imported_r_c = _import_constants(m, filename, api_config["required"], True)
-  imported_o_c = _import_constants(m, filename, api_config["optional"], False)
+  imported_r_f = \
+    _import_functions(m, filename, api_config.get("required", {}), True)
+  imported_o_f = \
+    _import_functions(m, filename, api_config.get("optional", {}), False)
+  imported_r_c = \
+    _import_constants(m, filename, api_config.get("required", {}), True)
+  imported_o_c = \
+    _import_constants(m, filename, api_config.get("optional", {}), False)
 
   if verbose:
     sys.stderr.write(
