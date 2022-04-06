@@ -52,10 +52,10 @@ def test_bash_opt_consts(testplugins, examples, fas_api_config):
                                    fas_api_config)
   assert plugin.ADVICE is not None
   assert plugin.METHOD is None
-  assert not hasattr(plugin, "UNDECLARED_CONST")
+  assert plugin.UNDECLARED_CONST == "imported"
   assert plugin.initialize is not None
   assert plugin.finalize is None
-  assert not hasattr(plugin, "undeclared_func")
+  assert plugin.undeclared_func() == "imported"
 
 def test_py_opt_consts(testplugins, examples, fas_api_config):
   plugin = pyplugins.py(testplugins("py_no_req_error.py"),

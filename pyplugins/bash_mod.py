@@ -3,117 +3,85 @@ import importlib
 from pyplugins.error import InterfaceRequirementError
 from pathlib import Path
 import sys
+from pyplugins.api_config import apply_api_config
 
-def _has_constant(filename, cname):
+def _is_array(filename, cname):
   try:
-    sh.bash("-c", f". {filename}; [ -z ${{{cname}+x}} ]")
-    return False
-  except sh.ErrorReturnCode_1:
-    return True
-
-def _get_constant(filename, cname, required):
-  if _has_constant(filename, cname):
-    return sh.bash("-c", f". {filename}; echo -e ${cname}").rstrip()
-  elif required:
-    raise InterfaceRequirementError(
-            f"Constant '{cname}' not defined in Bash module '{filename}'")
-  else:
-    return None
-
-def _import_constants(m, filename, api_config, required):
-  imported = {True: [], False: []}
-  for key in api_config.get("constants", {}).keys():
-    for cname in api_config["constants"][key]:
-      if key == "list" or key == "nested":
-        cvalue = _get_constant(filename, f"{{{cname}[@]}}", required)
-      else:
-        cvalue = _get_constant(filename, cname, required)
-      if cvalue is None or key == "strings":
-        setattr(m, cname, cvalue)
-      elif key == "lists":
-        setattr(m, cname, cvalue.split(" "))
-      elif key == "nested":
-        setattr(m, cname, [e.split("\t") for e in cvalue.split("\n")])
-      imported[cvalue is not None].append(cname)
-  return imported
-
-def _has_function(filename, funcname):
-  try:
-    sh.bash("-c", f". {filename}; [[ $(type -t {funcname}) == function ]]")
+    sh.bash("-c", f". {filename}; [[ \"$(declare -p {cname})\" "+\
+            "=~ \"declare -a\" ]]")
     return True
   except sh.ErrorReturnCode_1:
     return False
 
-def _wrap_function(filename, funcname, required):
-  if _has_function(filename, funcname):
-    def _fn(*args, **kwargs):
-      args_str=" ".join(args)
-      kwargs_str=" ".join([f"{k}={v}" for k, v in kwargs.items()])
-      retval = str(sh.bash("-c",
-        f". {filename}; {funcname} {args_str} {kwargs_str}", _err=sys.stderr))
-      if len(retval) > 0 and retval[-1] == "\n":
-        retval = retval[:-1]
-      has_newlines = "\n" in retval
-      has_tabs = "\t" in retval
-      if has_newlines and has_tabs:
-        retval = [l.split("\t") for l in retval.split("\n")]
-      elif has_newlines:
-        retval = retval.split("\n")
-      elif has_tabs:
-        retval = retval.split("\t")
-      return retval
-    return _fn
-  elif required:
-    raise InterfaceRequirementError(
-            f"Function '{funcname}' not defined in Bash module '{filename}'")
+def _get_constant(filename, cname):
+  is_array = _is_array(filename, cname)
+  if is_array:
+    value = sh.bash("-c", f". {filename}; " +\
+       f"for elem in ${{{cname}[@]}}; do echo -e $elem; done").\
+            rstrip().split("\n")
+    has_tabs = any("\t" in v for v in value)
+    if has_tabs:
+      value = [v.split("\t") for v in value]
   else:
-    return None
+    value = sh.bash("-c", f". {filename}; echo -e ${cname}").rstrip()
+  return value
 
-def _import_functions(m, filename, api_config, required):
-  imported = {True: [], False: []}
-  for funcname in api_config.get("functions", []):
-    f=_wrap_function(filename, funcname, required)
-    setattr(m, funcname, f)
-    imported[f is not None].append(funcname)
-  return imported
+def _list_attributes(m, filename, verbose):
+  before = sh.mktemp().rstrip()
+  after = sh.mktemp().rstrip()
+  sh.bash("-c", f"set > {before}")
+  sh.bash("-c", f". {filename}; set > {after}")
+  varnames=set(sh.bash("-c", f"diff {before} {after} |"+\
+      "grep '^>' | cut -c3- | grep '^[A-Za-z]' | grep '=' | "+\
+      "grep -o '^[^=]*'; true").rstrip().split("\n"))
+  funcnames=set(sh.bash("-c", f"diff {before} {after} |"+\
+      "grep '^>' | cut -c3- | grep '^[A-Za-z]' | grep -v '=' | grep '()' |"+\
+      "grep -o '^[A-Za-z][A-Za-z0-9_]*'; true").rstrip().split("\n"))
+  varnames -= {"BASH_REMATCH", "COMP_WORDBREAKS", "BASH_EXECUTION_STRING",
+      "PIPESTATUS"}
+  sh.rm(before)
+  sh.rm(after)
+  if verbose:
+    print("Imported functions: {}".format(funcnames))
+    print("Imported constants: {}".format(varnames))
+  return varnames, funcnames
+
+
+def _wrap_function(filename, funcname):
+  def _fn(*args, **kwargs):
+    args_str=" ".join(args)
+    kwargs_str=" ".join([f"{k}={v}" for k, v in kwargs.items()])
+    retval = str(sh.bash("-c",
+      f". {filename}; {funcname} {args_str} {kwargs_str}", _err=sys.stderr))
+    if len(retval) > 0 and retval[-1] == "\n":
+      retval = retval[:-1]
+    has_newlines = "\n" in retval
+    has_tabs = "\t" in retval
+    if has_newlines and has_tabs:
+      retval = [l.split("\t") for l in retval.split("\n")]
+    elif has_newlines:
+      retval = retval.split("\n")
+    elif has_tabs:
+      retval = retval.split("\t")
+    return retval
+  return _fn
 
 def bash(filename, api_config = {}, verbose = True):
   """
   Creates a Python module which wraps a shell script.
-  The functions and constants to be imported must be listed in the api_config
-  dictionary (see library documentation for the api_config syntax).
   """
   modulename=Path(filename).stem
   spec=importlib.machinery.ModuleSpec(modulename, None)
   m = importlib.util.module_from_spec(spec)
 
-  imported_r_f = \
-    _import_functions(m, filename, api_config.get("required", {}), True)
-  imported_o_f = \
-    _import_functions(m, filename, api_config.get("optional", {}), False)
-  imported_r_c = \
-    _import_constants(m, filename, api_config.get("required", {}), True)
-  imported_o_c = \
-    _import_constants(m, filename, api_config.get("optional", {}), False)
-
+  varnames, funcnames = _list_attributes(m, filename, verbose)
+  for v in varnames:
+    setattr(m, v, _get_constant(filename, v))
+  for f in funcnames:
+    setattr(m, f, _wrap_function(filename, f))
+  info = [f"# bash module {modulename} imported from file {filename}\n"]
+  info += apply_api_config(m, modulename, api_config)
   if verbose:
-    sys.stderr.write(
-        f"# bash module {modulename} imported from file {filename}\n")
-    found_f = imported_r_f[True] + imported_o_f[True]
-    not_found_f = imported_o_f[False]
-    if len(found_f) > 0:
-      sys.stderr.write("# imported functions: {}\n".\
-              format(", ".join(found_f)))
-    if len(not_found_f) > 0:
-      sys.stderr.write("# optional functions not defined (set to None): {}\n".\
-              format(", ".join(not_found_f)))
-    found_c = imported_r_c[True] + imported_o_c[True]
-    not_found_c = imported_o_c[False]
-    if len(found_c) > 0:
-      sys.stderr.write( "# imported constants: {}\n".\
-          format(", ".join(found_c)))
-    if len(not_found_c) > 0:
-      sys.stderr.write( "# optional constants not defined (set to None): {}\n".\
-          format(", ".join(not_found_c)))
+    sys.stderr.write("".join(info))
   m.__lang__ = "bash"
   return m

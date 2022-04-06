@@ -3,7 +3,7 @@ VERSION="0.1.0"
 INPUT="nothing"
 OUTPUT=( "bla" "bla" )
 ADVICE="advice"
-UNDECLARED_CONST="not_imported"
+UNDECLARED_CONST="imported"
 
 function initialize {
   echo -n "init"
@@ -20,5 +20,5 @@ function compute {
 }
 
 function undeclared_func {
-  echo -n "not_imported"
+  echo -n "imported"
 }
