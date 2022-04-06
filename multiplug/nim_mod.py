@@ -13,7 +13,7 @@ from pathlib import Path
 import nimporter
 import os
 from contextlib import contextmanager
-from pyplugins.plugin_api import enforce_plugin_api
+from multiplug.plugin_api import enforce_plugin_api
 
 NIM_CONST_PFX="py_const_"
 

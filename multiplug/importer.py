@@ -7,11 +7,11 @@ fly if it is an extension module written in Nim or Rust.
 """
 
 from pathlib import Path
-from pyplugins.py_mod import py
-from pyplugins.rust_mod import rust, RUST_CONST_CLS
-from pyplugins.nim_mod import nim, NIM_CONST_PFX
-from pyplugins.bash_mod import bash
-from pyplugins.error import UnsupportedLangError
+from multiplug.py_mod import py
+from multiplug.rust_mod import rust, RUST_CONST_CLS
+from multiplug.nim_mod import nim, NIM_CONST_PFX
+from multiplug.bash_mod import bash
+from multiplug.error import UnsupportedLangError
 
 def importer(filename, verbose=False, req_const=[], opt_const=[],
              req_func=[], opt_func=[], rust_const_cls=RUST_CONST_CLS,

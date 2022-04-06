@@ -27,7 +27,7 @@ import sys
 from pathlib import Path
 from glob import glob
 import yaml
-import pyplugins
+import multiplug
 
 PLUGIN_API_CONFIG = {}
 PLUGIN_API_CONFIG["req_func"] = ["compute"]
@@ -37,7 +37,7 @@ PLUGIN_API_CONFIG["opt_const"] = ["METHOD", "IMPLEMENTATION", "PARAMETERS",
                                   "ADVICE","REQ_SOFTWARE", "REQ_HARDWARE"]
 
 def main(args):
-  plugin = pyplugins.importer(args["<plugin>"], verbose=args["--verbose"],
+  plugin = multiplug.importer(args["<plugin>"], verbose=args["--verbose"],
                               **PLUGIN_API_CONFIG)
   params = args["--params"]
   if plugin.initialize is not None:

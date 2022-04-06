@@ -4,7 +4,7 @@
 # Check the API of a plugin module
 #
 
-from pyplugins.error import InterfaceRequirementError
+from multiplug.error import InterfaceRequirementError
 
 def _enforce_section(m, mname, units, unit_type, required):
   found_units = {True: [], False: []}

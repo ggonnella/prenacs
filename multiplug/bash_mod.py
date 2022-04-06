@@ -1,9 +1,9 @@
 import sh
 import importlib
-from pyplugins.error import InterfaceRequirementError
+from multiplug.error import InterfaceRequirementError
 from pathlib import Path
 import sys
-from pyplugins.plugin_api import enforce_plugin_api
+from multiplug.plugin_api import enforce_plugin_api
 
 def _is_array(filename, cname):
   try:

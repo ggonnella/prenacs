@@ -1,4 +1,4 @@
-The PyPlugins library is used for creating flexible plugin systems
+The MultiPlug library is used for creating flexible plugin systems
 for Python programs, supporting multiple programming languages.
 
 For example, a CLI script based on this library can take the name of
@@ -25,7 +25,7 @@ Main features of the library:
 # Installation
 
 The Python libraries listed in ``requirements.txt`` are installed automatically,
-if PyPlugins is installed using ``pip``, and can otherwise be installed using
+if MultiPlug is installed using ``pip``, and can otherwise be installed using
 ``pip install -r requirements.txt``.
 
 For supporting plugins written in Nim, the Nim compiler must be installed in the
@@ -37,4 +37,4 @@ the system and the _PyO3_ library installed, e.g. using ``cargo install PyO3``.
 # Usage
 
 The usage of the library is explained in the
- [user manual](https://github.com/ggonnella/pyplugins/blob/main/docs/usage.md).
+ [user manual](https://github.com/ggonnella/multi_plug/blob/main/docs/usage.md).

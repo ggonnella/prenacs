@@ -1,5 +1,5 @@
 import pytest
-import pyplugins
+import multiplug
 
 def test_bash(examples, testplugins, testdata, script_runner):
   script_fn = examples("batch_compute.py")

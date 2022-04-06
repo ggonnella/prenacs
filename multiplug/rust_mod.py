@@ -12,7 +12,7 @@ import importlib
 from pathlib import Path
 import os
 from contextlib import contextmanager
-from pyplugins.plugin_api import enforce_plugin_api
+from multiplug.plugin_api import enforce_plugin_api
 
 RUST_CONST_CLS = "Constants"
 

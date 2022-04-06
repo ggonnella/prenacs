@@ -8,7 +8,7 @@ Programmatically import a Python module
 import sys
 import importlib
 from pathlib import Path
-from pyplugins.plugin_api import enforce_plugin_api
+from multiplug.plugin_api import enforce_plugin_api
 
 def py(filename, verbose=False, req_const=[], opt_const=[],
                                 req_func=[],  opt_func=[]):

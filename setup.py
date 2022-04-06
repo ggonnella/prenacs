@@ -8,12 +8,12 @@ import sys
 if not sys.version_info[0] == 3:
   sys.exit("Sorry, only Python 3 is supported")
 
-setup(name='pyplugins',
+setup(name='multiplug',
       version='1.0',
       description='Plugin system supporting multiple programming languages',
       long_description=readme(),
       long_description_content_type="text/markdown",
-      url='https://github.com/ggonnella/pyplugins',
+      url='https://github.com/ggonnella/multiplug',
       keywords="plugins, extensions, nim, rust, shell, bash",
       author='Giorgio Gonnella',
       author_email='gonnella@zbh.uni-hamburg.de',

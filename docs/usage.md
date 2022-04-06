@@ -1,6 +1,6 @@
 # Importing a plugin module
 
-To import a plugin module, the function ``pyplugins.importer(filename)`` is
+To import a plugin module, the function ``multiplug.importer(filename)`` is
 used. The function automatically determines the plugin implementation
 language from the file extension (``.rs`` for Rust, ``.sh`` for Bash, ``.nim``
 for Nim, ``.py`` for Python).
@@ -117,10 +117,10 @@ directly to Python, a workaround is used instead. The constants are defined
 as the return value of functions (which are exportable to Python).
 
 The easiest way to import constants is to install the nimble package
-``pyplugins_nim`` (distributed with the source code of PyPlugins) and
+``multiplug_nim`` (distributed with the source code of PyPlugins) and
 use the macro ``exportpy_consts()``, e.g.:
 ```
-import pyplugins_nim/exportpy_consts
+import multiplug_nim/exportpy_consts
 const
   FOO="foo"
   BAR="bar"
