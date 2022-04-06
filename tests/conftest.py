@@ -7,6 +7,11 @@ def testdata():
       os.path.join(os.path.dirname(__file__),"../testdata/"), fn)
 
 @pytest.fixture
+def testplugins():
+  return lambda fn: os.path.join(\
+      os.path.join(os.path.dirname(__file__),"../testplugins/"), fn)
+
+@pytest.fixture
 def examples():
   return lambda fn: os.path.join(\
       os.path.join(os.path.dirname(__file__),"../examples/"), fn)
