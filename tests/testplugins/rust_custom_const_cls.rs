@@ -17,7 +17,7 @@ fn compute(filename: &str) -> PyResult<String> {
 }
 
 #[pymodule]
-fn rust_changed_const_klass(_py: Python, m: &PyModule) -> PyResult<()> {
+fn rust_custom_const_cls(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PythonConstants>()?;
     m.add_function(wrap_pyfunction!(compute, m)?)?;
     Ok(())

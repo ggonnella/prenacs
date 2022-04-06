@@ -3,7 +3,7 @@ import importlib
 from pyplugins.error import InterfaceRequirementError
 from pathlib import Path
 import sys
-from pyplugins.api_config import apply_api_config
+from pyplugins.plugin_api import enforce_plugin_api
 
 def _is_array(filename, cname):
   try:
@@ -41,9 +41,6 @@ def _list_attributes(m, filename, verbose):
       "PIPESTATUS"}
   sh.rm(before)
   sh.rm(after)
-  if verbose:
-    print("Imported functions: {}".format(funcnames))
-    print("Imported constants: {}".format(varnames))
   return varnames, funcnames
 
 
@@ -66,7 +63,8 @@ def _wrap_function(filename, funcname):
     return retval
   return _fn
 
-def bash(filename, api_config = {}, verbose = True):
+def bash(filename, verbose=False, req_const=[], opt_const=[],
+                                  req_func=[],  opt_func=[]):
   """
   Creates a Python module which wraps a shell script.
   """
@@ -80,7 +78,9 @@ def bash(filename, api_config = {}, verbose = True):
   for f in funcnames:
     setattr(m, f, _wrap_function(filename, f))
   info = [f"# bash module {modulename} imported from file {filename}\n"]
-  info += apply_api_config(m, modulename, api_config)
+  info += enforce_plugin_api(m, modulename, req_const=req_const,
+                           opt_const=opt_const, req_func=req_func,
+                           opt_func=opt_func)
   if verbose:
     sys.stderr.write("".join(info))
   m.__lang__ = "bash"

@@ -8,12 +8,14 @@ fly if it is an extension module written in Nim or Rust.
 
 from pathlib import Path
 from pyplugins.py_mod import py
-from pyplugins.rust_mod import rust
-from pyplugins.nim_mod import nim
+from pyplugins.rust_mod import rust, RUST_CONST_CLS
+from pyplugins.nim_mod import nim, NIM_CONST_PFX
 from pyplugins.bash_mod import bash
 from pyplugins.error import UnsupportedLangError
 
-def importer(filename, api_config={}, verbose=False):
+def importer(filename, verbose=False, req_const=[], opt_const=[],
+             req_func=[], opt_func=[], rust_const_cls=RUST_CONST_CLS,
+             nim_const_pfx=NIM_CONST_PFX, disable_bash=False):
   """
   Import a module given its "filename".
 
@@ -26,36 +28,49 @@ def importer(filename, api_config={}, verbose=False):
 
   The language of the module is deducted from the filename extension, which
   must be one of: ".py", ".nim", ".rs", ".sh".
-
-  If api_config["disable_bash"] is set, then Bash scripts
-  are not supported.
+  If ``disable_bash`` is set, then Bash scripts are not supported.
 
   Return value:
-  - the module, with:
-    - an attribute __lang__ set to "python", "nim", "rust" or "bash"
-    - the functions defined in the module (for "bash", a configuration is
-      required, see below)
-    - constants defined in the module (a configuration is required, except
-      for Python modules)
+    the imported module
 
-  For the syntax of the API configuration dictionary, see the usage manual.
-
-  Requirements:
-  - Rust: see requirements in rust_mod.py
-  - Nim: see requirements in nim_mod.py
+  Attributes added to the imported module:
+    __lang__: the language of the module (one of "py", "rust", "nim", "bash")
+    variables/constants:
+      Python: as in normal module import
+      Nim: constants passed to exportpy_consts or exportpy_consts_wpfx;
+           functions exported to Python with name starting with ``py_const_``
+           (or the value of ``nim_const_pfx``)
+      Rust: constants defined in a Struct, exported to Python,
+            named ``Constants`` (or the value of ``rust_const_cls``)
+      Bash: variables whose name does not start with _
+            (with the value they have after script execution)
+    functions:
+      Python: as in normal module import
+      Nim: functions exported to Python --
+           except those with name starting with ``py_const_``
+           (or the value of ``nim_const_pfx``)
+      Rust: functions exported to Python
+      Bash: functions whose name does not start with _,
+            wrapped in a function with parameters ``(*args, **kwargs)``
   """
   suffix = Path(filename).suffix
   if suffix == ".rs":
-    m = rust(filename, api_config, verbose)
+    m = rust(filename, verbose=verbose, req_const=req_const,
+             opt_const=opt_const, req_func=req_func, opt_func=opt_func,
+             const_cls=rust_const_cls)
   elif suffix == ".sh":
-    if api_config.get("disable_bash", False):
+    if disable_bash:
       raise UnsupportedLangError("Bash scripts are not supported by this "+\
                                   "application")
-    m = bash(filename, api_config, verbose)
+    m = bash(filename, verbose=verbose, req_const=req_const,
+             opt_const=opt_const, req_func=req_func, opt_func=opt_func)
   elif suffix == ".nim":
-    m = nim(filename, api_config, verbose)
+    m = nim(filename, verbose=verbose, req_const=req_const,
+            opt_const=opt_const, req_func=req_func, opt_func=opt_func,
+            const_pfx=nim_const_pfx)
   elif suffix == ".py":
-    m = py(filename, api_config, verbose)
+    m = py(filename, verbose=verbose, req_const=req_const,
+           opt_const=opt_const, req_func=req_func, opt_func=opt_func)
   else:
     raise UnsupportedLangError("Unsupported language, file suffix is: " \
                                  + suffix)

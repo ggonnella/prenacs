@@ -8,9 +8,10 @@ Programmatically import a Python module
 import sys
 import importlib
 from pathlib import Path
-from pyplugins.api_config import apply_api_config
+from pyplugins.plugin_api import enforce_plugin_api
 
-def py(filename, api_config = {}, verbose=False):
+def py(filename, verbose=False, req_const=[], opt_const=[],
+                                req_func=[],  opt_func=[]):
   """
   Programmatically import Python module "filename"
   """
@@ -20,7 +21,9 @@ def py(filename, api_config = {}, verbose=False):
   spec.loader.exec_module(m)
 
   info = [f"# python module {modulename} imported from file {filename}\n"]
-  info += apply_api_config(m, modulename, api_config)
+  info += enforce_plugin_api(m, modulename, req_const=req_const,
+                           opt_const=opt_const, req_func=req_func,
+                           opt_func=opt_func)
   if verbose:
     sys.stderr.write("".join(info))
   m.__lang__ = "python"

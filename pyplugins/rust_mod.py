@@ -12,7 +12,9 @@ import importlib
 from pathlib import Path
 import os
 from contextlib import contextmanager
-from pyplugins.api_config import apply_api_config
+from pyplugins.plugin_api import enforce_plugin_api
+
+RUST_CONST_CLS = "Constants"
 
 _toml_content = """
 [package]
@@ -70,7 +72,7 @@ def _cargo_for(filename):
     if cargo_temporary:
       sh.rm(workingdir/"Cargo.toml", workingdir/"Cargo.lock")
 
-def _transfer_attrs_to_module(m, membername):
+def _import_constants(m, membername):
   """
   Transfer attributes of a member of a module to the module
   and delete the member.
@@ -86,7 +88,8 @@ def _transfer_attrs_to_module(m, membername):
         setattr(m, k, getattr(member, k))
     delattr(m, membername)
 
-def rust(filename, api_config = {}, verbose=False):
+def rust(filename, verbose=False, req_const=[], opt_const=[],
+         req_func=[],  opt_func=[], const_cls=RUST_CONST_CLS):
   """
   Import a Rust module written using pyo3, compiling it with maturin.
 
@@ -98,29 +101,6 @@ def rust(filename, api_config = {}, verbose=False):
   The "target" subdirectory (in the parent directory of <filename>) is not
   removed, so that unnecessary recompilations are avoided. You may want to add
   "target" to .gitignore.
-
-  Requirements:
-  - rust compiler and cargo
-  - pyo3 (the maturin binary must be in path)
-
-  Constant definition mechanism:
-
-    If a class "Constants" is defined in the module, all attributes of the class
-    are moved to the module and the class is deleted (if import_constants is
-    True); this mechanism is used in order to be able to define module-scoped
-    constants.
-
-    Example:
-
-      #[pyclass] struct Constants {}
-      #[pymethods]
-        impl Constants { #[classattr] const FOO: &'static str = "bar"; }
-
-    The name of the class ("Constants") can be changed setting the key
-    rust_const_klass of api_config.
-
-    If the key is set to an empty string, the constant definition
-    mechanism is disabled.
   """
   workingdir = Path(filename).parent
   modulename = Path(filename).stem
@@ -132,12 +112,15 @@ def rust(filename, api_config = {}, verbose=False):
   m = importlib.util.module_from_spec(spec)
   spec.loader.exec_module(m)
   info = [f"# rust module {modulename} imported from file {filename}\n"]
-  klass = api_config.get("rust_const_klass", "Constants")
-  if len(klass) > 0:
-    _transfer_attrs_to_module(m, klass)
-    info += apply_api_config(m, modulename, api_config, True)
+  if len(const_cls) > 0:
+    _import_constants(m, const_cls)
+    info += enforce_plugin_api(m, modulename, req_func=req_func,
+                             opt_func=opt_func, req_const=req_const,
+                             opt_const=opt_const)
   else:
-    info += apply_api_config(m, modulename, api_config, False)
+    assert len(req_const) == 0
+    info += enforce_plugin_api(m, modulename, req_func=req_func,
+                             opt_func=opt_func, opt_const=opt_const)
     info.append("# constants definition mechanism disabled\n")
   if verbose:
     sys.stderr.write("".join(info))

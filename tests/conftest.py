@@ -19,12 +19,9 @@ def examples():
 @pytest.fixture
 def fas_api_config():
   api_config = {}
-  api_config["required"] = {"functions": ["compute"],
-                            "constants": {"strings": ["ID", "VERSION", "INPUT"],
-                                          "lists": ["OUTPUT"]}}
-  api_config["optional"] = {"functions": ["initialize", "finalize"],
-                            "constants": {"strings": ["METHOD",
-                                              "IMPLEMENTATION", "ADVICE",
-                                              "REQ_SOFTWARE", "REQ_HARDWARE"],
-                                          "nested": ["PARAMETERS"]}}
+  api_config["req_func"] = ["compute"]
+  api_config["opt_func"] = ["initialize", "finalize"]
+  api_config["req_const"] = ["ID", "VERSION", "INPUT", "OUTPUT"]
+  api_config["opt_const"] = ["METHOD", "IMPLEMENTATION", "PARAMETERS",
+                             "ADVICE","REQ_SOFTWARE", "REQ_HARDWARE"]
   return api_config
