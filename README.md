@@ -37,4 +37,4 @@ the system and the _PyO3_ library installed, e.g. using ``cargo install PyO3``.
 # Usage
 
 The usage of the library is explained in the
- [user manual](https://github.com/ggonnella/multi_plug/blob/main/docs/usage.md).
+ [user manual](https://github.com/ggonnella/multiplug/blob/main/docs/usage.md).
