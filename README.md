@@ -36,9 +36,5 @@ the system and the _PyO3_ library installed, e.g. using ``cargo install PyO3``.
 
 # Usage
 
-The ``docs`` directory contains the library documentation:
-- ``usage.md`` is the main user manual
-- ``constants.md`` explains the system for defining module-level "constants"
-   in plugins written in the different supported languages
-- ``functions.md`` explains how to export and use public functions from the
-   plugins, when using the different supported languages
+The usage of the library is explained in the
+ [user manual](https://github.com/ggonnella/pyplugins/blob/main/docs/usage.md).

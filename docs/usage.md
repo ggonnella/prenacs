@@ -1,77 +1,173 @@
 # Importing a plugin module
 
-To import a plugin module, the function
-``pyplugins.importer(filename, api_config = {}, verbose = False)`` is used.
-This automatically determines the plugin implementation language from the
-file extension (``.rs`` for Rust, ``.sh`` for Bash).
+To import a plugin module, the function ``pyplugins.importer(filename)`` is
+used. The function automatically determines the plugin implementation
+language from the file extension (``.rs`` for Rust, ``.sh`` for Bash, ``.nim``
+for Nim, ``.py`` for Python).
+To load a plugin with a specific language only, use one of the functions
+``bash(filename)``, ``rust(filename)``, ``py(filename)`` or ``nim(filename)``.
 
-If only modules of a given language are allowed, then the following functions
-can be used instead:
-- ``pyplugins.bash(filename, api_config = {}, verbose = False)``
-- ``pyplugins.rust(filename, api_config = {}, verbose = False)``
-- ``pyplugins.nim(filename, api_config = {}, verbose = False)``
-- ``pyplugins.py(filename, api_config = {}, verbose = False)``
+Additionally to the filename the following named parameters are available:
+- ``verbose``: output verbose messages
+- ``disable_bash`` (``importer()`` function):
+  if set, only Rust, Python and Nim plugins are supported
+- ``req_const``, ``req_func``: list of names of constants and functions,
+  which _must_ be provided by the module; an exception is raised otherwise
+- ``opt_const``, ``req_func``: list of names of constants and functions,
+  which _may_ be provided by the module and are set to ``None`` if not provided
+- ``nim_const_pfx``: prefix to use in the Nim constants export system
+  (default: ``py_const_``)
+- ``rust_const_cls``: name of the class to use in the Rust constants export
+  system (defailt: ``Constants``)
 
-Listing functions and constants in the ``api_config`` parameters (see below)
-is necessary for Bash plugins. For plugins implemented in other languages,
-it is not necessary, but it can be employed for checking that the required
-functions and constants are defined and for specifying parameters of the
-constant importing mechanisms.
+# Bash plugins limitations
 
-The definition of constants in the plugin modules is explained in
-the ``constants.md`` document, and the definition of functions
-in the ``functions.md`` document.
-
-# Limitations of Bash plugins
-
-Bash plugins have some limitations, compared to Python, Rust and Nim plugins:
-- a list of required and optional constants and functions _must_ be provided
-  in ``api_config`` -- this is usually not a big limitation, since the calling
-  code will usually know this information anyway in order to use those functions
-  and constants
-- the return type can only be string, a list of strings or a list of lists
-  of strings
+For plugins written in Bash there are some limitations:
+- the return type of the functions, and the constants type is limited to:
+  - strings
+  - lists of strings
+  - lists of lists of string
+- the function arguments are not checked, i.e. the wrapped function interface
+  is always ``(*args, **kwargs)``
+- the script code is sourced multiple times in order to collect information
+  about the defined functions and constants
 
 If this limitations are undesired in an application, bash plugins can be
-switched off by setting ``api_config["disable_bash"]`` (see below).
+disabled by setting ``disable_bash``.
 
-# API Configuration
+# Plugin Functions
 
-The API configuration parameter ``api_config`` of the importer functions
-is a dictionary. It may contain the following keys (any other key is ignored):
-  - ``required``: section definining the required constants and functions;
-    if they are not found, an exception is raised
-  - ``optional``: section definining the optional constants and functions;
-    if they are not found, they are set to None
-  - ``disable_bash``: disable support of bash plugins
-  - ``nim_const_pfx``: a string, the prefix used for
-    the Nim module constants definition mechanism (see below); the default
-    value is ``py_const_``
-  - ``rust_const_klass``: a string, the class name used for
-    the Rust module constants definition mechanism (see below); the default
-    value is ``Constants``
+In Python plugins, functions are just defined as in any Python module.
+In Nim plugins, the ``{.exportpy.}`` pragma from the  ``nimpy`` Nim library
+is used. Consult the ``nimpy`` documentation for more information.
+In Rust plugins, the ``PyO3`` library is used. Consult the library
+documentation for more information.
+In Bash plugins, functions are defined using some conventions, described
+below, which allow to automatically create their Python wrappers.
 
-The values for the two keys ``required`` and ``optional``
-are dictionaries which may contain the following keys:
-  - functions: a list of function names to be imported
-  - constants: a dictionary of lists of "constants" to be imported.
-    The keys are "strings", "lists" and "nested".
-    The values are lists of names of constants.
+## Bash functions arguments
 
-For Bash plugins any other function or variable defined in the script is
-not imported. Plugin developed in other languages import also any
-other defined function or constant.
+All exported functions defined in Bash plugins are wrapped in a function
+which accepts any number of arguments and keyword arguments
+(``(**args, **kwargs)``).
 
-An example value of the ``api_config`` parameter:
+The Bash function, however, may only accept a defined number of positional
+arguments. An eval-based system is used for passing the keyword arguments, e.g.:
 ```
-  api_config = {
-    "required": {
-        "constants": {"strings": ["S1"], "lists": ["S2"], "nested": ["S3"]},
-        "functions": ["F1", "F2"],
-      },
-    "optional": {
-        "constants": {"strings": ["S4"], "nested": ["S6", "S7"]},
-        "functions": ["F3"],
-      },
-    }
+function foo() {
+  arg1=$1; shift; arg2=$1; shift # shift after each positional argument
+
+  # the remaining arguments are the keyword arguments
+  kwargs=$*; for kw in $kwargs; do eval $kw; done
+  ...
+}
 ```
+
+## Bash function return value
+
+To return a value from Bash, a string is printed using "echo".
+For that reason function shall not print anything else than the return value
+(however, it may use the standard error freely).
+
+If the returned string contains multiple lines or tabs, the wrapper
+splits it into an list of strings. If both newlines and tabs are returned,
+the string is splitted first by newline, then by tabs, and a list of lists of
+strings is returned by the wrapper. Examples:
+```
+  echo "123" # ==> "123" is returned (string)
+  echo "1/t2" # ==> ["1", "2"] is returned (list)
+  echo "1/n2/t3" # => [["1"], ["2", "3"]] is returned (nested list)
+```
+
+# Constants
+
+Actually, Python does not really have constants. However, by convention,
+variables names written in ``UPPER_CASE`` are considered constants.
+
+Module-level constants are useful e.g. for defining special values,
+for defining hard-coded module parameters, or for storing metadata
+(for example, a plugin version number, or a description of possible
+plugin parameters).
+
+In Python plugins, the constants are simply defined in the module code.
+For the other languages, some conventions are described below.
+
+## Bash
+
+Constants are defined as variables in the script code.
+Only variables whose name does not start with an underscore are imported.
+
+Scalar variables are imported as string constants.
+Arrays are imported as lists of strings.
+If any element of the array contain a tab, each of the elements
+is splitted by tab, so that the constant value is a list of lists.
+
+Examples:
+```
+STRING_FOO1="bar1"
+LIST_FOO2=( "bar21" "bar2 2" )
+NESTED_FOO3=( "bar311"
+              "bar3 21\tbar322" )
+```
+
+## Nim
+
+Since the ``nimpy/nimporter`` system does not allow to export Nim constants
+directly to Python, a workaround is used instead. The constants are defined
+as the return value of functions (which are exportable to Python).
+
+The easiest way to import constants is to install the nimble package
+``pyplugins_nim`` (distributed with the source code of PyPlugins) and
+use the macro ``exportpy_consts()``, e.g.:
+```
+import pyplugins_nim/exportpy_consts
+const
+  FOO="foo"
+  BAR="bar"
+exportpy_consts(FOO, BAR)
+```
+
+### Implementation details
+
+For each constant, a proc with no arguments is defined in the Nim code,
+which returns the value of the constant. The proc name has a prefix
+(by default ``py_const_`` which allows to recognize it and is stripped
+in the definition of the Python module attribute.
+E.g.: ``proc py_const_FOO(): string {.exportpy.} = "bar"``
+defines the attribute ``FOO`` with value ``"bar"`` in Python.
+
+### Using a custom prefix
+
+The prefix used in the proc names (by default ``py_const_``) can be changed by
+setting the ``nim_const_pfx`` parameter of the importer function. In this case
+in the Nim code, the macro ``exportpy_consts_wpfx(pfx, ...)`` is used in place
+of the ``exportpy_consts()`` macro, where the first parameter is the same
+prefix used in the ``nim_const_pfx`` parameter in the importer function in
+the Python code.
+
+## Rust
+
+Since the ``PyO3/maturin`` system does not allow to export Rust module-level
+constants to Python, a workaround is used instead. The constants are defined
+in a struct called ``Constants`` and exported as Python class
+
+For example:
+```
+#[pyclass] struct Constants {}
+#[pymethods]
+impl Constants { #[classattr] const FOO: &'static str = "bar"; }
+
+...
+
+#[pymodule]
+fn my_module(_py: Python, m: &PyModule) -> PyResult<()> {
+  m.add_class::<Constants>()?;
+  ...
+```
+
+### Using a custom class name
+
+Instead of ``Constants`` a different class name can be specified,
+by setting the ``rust_const_cls`` keyword parameter in the importer function
+to a different string.
+
