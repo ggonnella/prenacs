@@ -55,23 +55,23 @@ The function itself is then deleted from the module.
 An example would be:
 ``proc py_const_FOO(): string = "bar"``
 
-### Using the exportconst macro
+### Using the ``exportpy_consts`` macro
 
-To even simplify more the export of the constants, a macro
-contained in the ``pyplugins_nim`` package can be used. The package
-is included with the source code of ``PyPlugins`` (in the ``pyplugins_nim``
-subdirectory) and can be installed using nimble.
+The directory ``pyplugins_nim`` contains a nimble package, with the module
+``exportpy_consts``, which simplifies the definition of constants.
 
-If the ``pyplugins_nim/plugins_helper`` module is included in the Nim code,
-the constants can be defined as usual in Nim (in a ``const`` block) and the
-``exportconst`` macro is then called, with the name of the constant
-(this generates the wrapping proc automatically).
-
-For example:
+The macro ``exportpy_consts`` takes the name of one or multiple macros
+and generates the necessary procs with the prefix `py_const_`, e.g.:
 ```
-const FOO="bar"
-exportconst(FOO)
+import pyplugins_nim/exportpy_consts
+const
+  FOO="foo"
+  BAR="bar"
+exportpy_consts(FOO, BAR)
 ```
+
+If the prefix is set in the API configuration to a different string
+(`<pfx>`), the macro ``exportpy_consts_wpfx(<pfx>, FOO, BAR)`` is used instead.
 
 ## Rust
 

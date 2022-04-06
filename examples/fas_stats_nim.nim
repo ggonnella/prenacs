@@ -7,7 +7,7 @@ import math
 import nimpy
 import zip/gzipfiles
 import tables
-import pyplugins_nim/plugin_helpers
+import pyplugins_nim/exportpy_consts
 
 const
   ID =             "fas_stats_nim"
@@ -21,7 +21,9 @@ const
   REQ_SOFTWARE =   "nim >= 1.2.8; nimble libraries: zip >= 0.3.1"
   ADVICE =         "preferred over fasgz_stats_posix, if nim is available, " &
                    "since it is faster"
-export_plugin_metadata()
+
+exportpy_consts(ID, VERSION, INPUT, OUTPUT, METHOD, IMPLEMENTATION, PARAMETERS,
+                REQ_SOFTWARE, ADVICE)
 
 const bufsize = 2 ^ 16
 
