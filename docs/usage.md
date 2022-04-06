@@ -171,3 +171,44 @@ Instead of ``Constants`` a different class name can be specified,
 by setting the ``rust_const_cls`` keyword parameter in the importer function
 to a different string.
 
+# Persistant state between function calls
+
+To implement a state which shall persist between function calls, the plugin
+shall implement an initialization function, creating the state, a
+finalization function, destroying the state (if necessary). The other function
+calls shall then take the state as an argument.
+
+Examples of plugins using a persistant state in all supported programming
+languages are in the ``tests/testplugins`` directory.
+
+For Python and Nim it is not particularly challenging to have an initialization
+function, which creates a new state object, and pass the state as an argument
+to other functions.
+
+## Rust
+
+In Rust the state can be implemented as a ``struct``, e.g. ``struct State``.
+The initialization function will return a ``PyResult<Py<State>>``. Thereby the
+state is created using ``Py::new(py, State {...})``, where ``py`` is obtained
+using ``Python::acquire_gil().python()``.
+
+The state is passed then to other functions (including the finalization
+function, if any) as the ``state: Py<State>`` argument. To change the state
+``let mut state = state.borrow_mut(py)`` can be used, where ``py`` is obtained
+as explained above.
+
+## Bash
+
+In Bash the state can be implemented by storing it to file. The initialization
+function can create a state file using $(mktemp) and storing some information
+to the file, then returning the filename.
+Other functions then get the state filename as an argument.
+
+For example the information can be
+stored in form of variable assignments (e.g. ``x=1``). Functions other than
+the initialization get then the state filename as argument. The contents
+of the file can be executed using ``eval $(cat $state_file)``.
+If the variable are modified, the previous state file can be overwritten
+with new variable assignment statements (e.g. ``x=2``).
+
+
