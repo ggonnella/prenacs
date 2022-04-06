@@ -18,20 +18,27 @@ Main features of the library:
 - a wrapper mechanism allows to support Bash plugins
 - systems are provided for defining module-level constants when importing
   Nim and Rust modules
-- basic aspects of the plugin interface (required and optional module-level
-  public functions and constants) can be specified and
+- basic aspects of the plugin interface (names of the required and optional
+  module-level public functions and constants) can be specified and
   automatically checked
 
-# Requirements
+# Installation
 
-This library is based on:
-- the Python libraries listed in ``requirements.txt``
-  (installable using ``pip``)
-- for Nim plugins: the Nim compiler and the _nimpy_ library
-  (installable using ``nimble``)
-- for Rust plugins: the Rust compiled and the _PyO3_ library
-  (installable using ``cargo``)
+The Python libraries listed in ``requirements.txt`` are installed automatically,
+if PyPlugins is installed using ``pip``, and can otherwise be installed using
+``pip install -r requirements.txt``.
 
-# Usage manual
+For supporting plugins written in Nim, the Nim compiler must be installed in the
+system and the _nimpy_ library installed, e.g. using ``nimble install nimpy``.
 
-See ``docs/usage.md``.
+For supporting plugins written in Rust, the Rust compiler must be installed in
+the system and the _PyO3_ library installed, e.g. using ``cargo install PyO3``.
+
+# Usage
+
+The ``docs`` directory contains the library documentation:
+- ``usage.md`` is the main user manual
+- ``constants.md`` explains the system for defining module-level "constants"
+   in plugins written in the different supported languages
+- ``functions.md`` explains how to export and use public functions from the
+   plugins, when using the different supported languages
