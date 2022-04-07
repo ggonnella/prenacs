@@ -13,7 +13,7 @@ Additionally to the filename the following named parameters are available:
   if set, only Rust, Python and Nim plugins are supported
 - ``req_const``, ``req_func``: list of names of constants and functions,
   which _must_ be provided by the module; an exception is raised otherwise
-- ``opt_const``, ``req_func``: list of names of constants and functions,
+- ``opt_const``, ``opt_func``: list of names of constants and functions,
   which _may_ be provided by the module and are set to ``None`` if not provided
 - ``nim_const_pfx``: prefix to use in the Nim constants export system
   (default: ``py_const_``)
