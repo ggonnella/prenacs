@@ -21,10 +21,10 @@ def _enforce_section(m, mname, units, unit_type, required):
   info = []
   lbl = "required" if required else "optional"
   if found_units[True]:
-    info.append("# imported {} {}: {}\n".format(lbl, unit_type,
+    info.append("#   imported {} {}: {}\n".format(lbl, unit_type,
                                                 ", ".join(found_units[True])))
   if found_units[False]:
-    info.append("# non defined {} {} (set to None): {}\n".\
+    info.append("#   non defined {} {} (set to None): {}\n".\
         format(lbl, unit_type, ", ".join(found_units[False])))
   return info
 
