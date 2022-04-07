@@ -17,7 +17,7 @@ def _get_constant(filename, cname):
   is_array = _is_array(filename, cname)
   if is_array:
     value = sh.bash("-c", f". {filename}; " +\
-       f"for elem in ${{{cname}[@]}}; do echo -e $elem; done").\
+       f"for elem in \"${{{cname}[@]}}\"; do echo -e $elem; done").\
             rstrip().split("\n")
     has_tabs = any("\t" in v for v in value)
     if has_tabs:
