@@ -8,7 +8,7 @@ OUTPUT=( "genome_size" "GC_content" )
 METHOD="count bases"
 IMPLEMENTATION="pipe of posix tools, called from python using sh library"
 REQ_SOFTWARE="grep, tr, wc, zcat"
-PARAMETERS=( "uncompressed\tbool\tFalse\tinput is not gzipped\n"
+PARAMETERS=( "uncompressed\tbool\tFalse\tinput is not gzipped"
              "param2\tbool\tTrue\tbla bla")
 
 function compute() { local filename=$1; shift; kwargs=$*
