@@ -68,7 +68,7 @@ For the examples given above:
 ```
 with snacli.args(input=["<inputfile1>", "INPUTFILE2"],
                  output=["<outputfile1>", "--outputfile2"],
-                 params=["--param1"]) as args:
+                 params=["--bar", "-f"]) as args:
    # code which does something with args, as if they would
    # come from docopt, e.g.
    print(args["<inputfile>"])
