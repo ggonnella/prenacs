@@ -136,6 +136,21 @@ for their meaning, e.g.
 with snacli.args(version="1.0", input= ...
 ```
 
+## Using a script also as a non-interactive module
+
+Sometimes a script shall be also used as non-interactive, i.e. imported as module
+in another Python module.
+
+In case the script is imported as module, the value yielded by the
+``snacli.args()`` context manager will be ``None``.
+Thus to support inclusion as a module, an additional ``if`` condition
+must be added, e.g.:
+```
+with snacli.args(...) as args:
+  if args:
+    ...
+```
+
 ## Reusing argument definitions in multiple scripts
 
 If the same arguments are used in multiple scripts, they can be collected in
