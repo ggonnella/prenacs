@@ -1,0 +1,38 @@
+rule reuse1:
+  input:
+    input_sp1="testdata/input1",
+    common1_input="testdata/input2",
+    common2_input="testdata/input3"
+  output:
+    output_sp1=touch("test_out/output1"),
+    common1_output=touch("test_out/output2"),
+    common2_output=touch("test_out/output3")
+  params:
+    common1_param=True,
+    common2_param=True,
+    x=True,
+    y=True,
+    param_sp1=True
+  script:
+    "reuse1.py"
+
+rule reuse2:
+  input:
+    input_sp2="testdata/input1",
+    common1_input="testdata/input2",
+    common2_input="testdata/input3"
+  output:
+    output_sp2=touch("test_out/output1"),
+    common1_output=touch("test_out/output2"),
+    common2_output=touch("test_out/output3")
+  params:
+    common1_param=True,
+    common2_param=True,
+    x=True,
+    y=True,
+    param_sp2=True
+  script:
+    "reuse2.py"
+
+onsuccess:
+  shell("touch testdata/input1 testdata/input2 testdata/input3")

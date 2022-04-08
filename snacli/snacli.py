@@ -91,7 +91,7 @@ from docopt import docopt
 import inspect
 
 @contextmanager
-def args(*dicts, doc=None, argv=None, help=True,
+def args(*dicts, doc=None, docvars=None, argv=None, help=True,
          version=None, options_first=False, **kwargs):
   glob = inspect.stack()[2][0].f_globals
   if "snakemake" in glob:
@@ -101,6 +101,13 @@ def args(*dicts, doc=None, argv=None, help=True,
     # This is executed when the script is invoked from the command line.
     if doc is None:
       doc = glob["__doc__"]
+    if docvars:
+      # formatting must be applied here, since __doc__ is None
+      # when called in snakemake, thus the docvars keyword
+      if isinstance(docvars, dict):
+        doc = doc.format(**docvars)
+      else:
+        doc = doc.format(*docvars)
     yield docopt(doc, argv=argv, help=help, version=version,
                  options_first=options_first)
   else:

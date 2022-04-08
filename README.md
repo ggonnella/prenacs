@@ -165,7 +165,7 @@ Then the docstring of a script could be set to:
 
   Options:
     --specific    Specific option for this script only
-    {common_opts}
+    {}
 ```
 The definition string for the options and the mapping of docopt strings
 to snakemake could be provided in a module ``bar``, which can be reused
@@ -182,33 +182,44 @@ optmap = {"input": ["--input1"], "params": ["--param2"]}
 Then in the script, SnaCLI can be used as follows:
 ```
 import bar
-with snacli.args(bar.optmap, doc=__doc__.format(common_opts=bar.optstr),
+with snacli.args(bar.optmap, docvars=[bar.optstr]),
                  params = ["--specific"]) as args:
   ...
 ```
 
 I.e. the common mapping is passed as positional argument to ``snacli.args``,
-before any keyword argument.
+before any keyword argument, and the docvars keyword argument is used,
+with the arguments which shall be passed to ``format()``
+called on the docopt string.
 
 This can be generalized over multiple re-usable modules, e.g.:
 ```
+...
+  Options:
+    {bar_opts}
+    {foo_opts}
+...
+
 import foo
 import bar
 with snacli.args(foo.optmap, bar.optmap,
-                 doc=__doc__.format(bar_opts=bar.optstr,
-                                    foo_opts=foo.optstr),
+                 docvars={"bar_opts": bar.optstr,
+                          "foo_opts": foo.optstr},
                  params = ["--specific"]) as args:
   ...
 ```
 
+### Multiple entries for the same key
+
 It is possible to override the name mapping for a key passed with a
 positional argument, using one of the following positional arguments, or in the
-keyword arguments. In the example above, if foo.optmap contains ``{inputs =
+keyword arguments.
+
+In the example above, if foo.optmap contains ``{inputs =
 ["--specific"]}``, the later setting in the keyword argument ``params`` would
 be applied instead, i.e. ``specific`` would be taken from ``params`` and not
 from ``inputs``.
 
-Although the same key can thus be used in different positional arguments
-or in a positional argument and in keyword arguments, using the same key in
+Instead, using the same key in
 different lists of the same positional argument, or in different keyword
-arguments is instead an error, leading to unspecified behaviour.
+arguments is an error, leading to unspecified behaviour.
