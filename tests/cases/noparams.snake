@@ -1,4 +1,4 @@
-rule complete:
+rule noparams:
   input:
     i1="testdata/input1",
     i2="testdata/input2",
@@ -9,25 +9,8 @@ rule complete:
     o2=touch("test_out/output2"),
     o3=touch("test_out/output3"),
     y=touch("test_out/y")
-  params:
-    p1="param1",
-    p2="param2",
-    p3=True,
-    z=True
   script:
-    "complete.py"
-
-rule mandatory:
-  input:
-    i1="testdata/input1",
-    i2="testdata/input2"
-  output:
-    o1=touch("test_out/output1"),
-    o2=touch("test_out/output2")
-  params:
-    p1="param1"
-  script:
-    "complete.py"
+    "noparams.py"
 
 onsuccess:
   shell("touch testdata/input1 testdata/input2 testdata/input3 testdata/x")

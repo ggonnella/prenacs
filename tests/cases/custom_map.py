@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Usage:
-  complete.py [options] <i1> I2 <o1> O2 <p1> [P2]
+  custom_map.py [options] <i1> I2 <o1> O2 <p1> [P2]
 
 Options:
   --i3 FN   the i3 input filename option
@@ -12,9 +12,9 @@ Options:
   -z        the Z parameter
 """
 import snacli
-with snacli.args(input=["<i1>","I2","--i3","-x"],
-                 output=["<o1>","O2","--o3","-y"],
-                 params=["<p1>","P2","--p3","-z"]) as args:
+with snacli.args(input=[("<i1>", "input1"),"I2",("--i3", "input3"),"-x"],
+                 output=["<o1>",("O2", "output2"),"--o3","-y"],
+                 params=["<p1>","P2","--p3",("-z", "zeta")]) as args:
   print(args["<i1>"])
   print(args["I2"])
   print(args["--i3"])

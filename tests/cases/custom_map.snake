@@ -1,0 +1,21 @@
+rule custom_map:
+  input:
+    input1="testdata/input1",
+    i2="testdata/input2",
+    input3="testdata/input3",
+    x="testdata/x"
+  output:
+    o1=touch("test_out/output1"),
+    output2=touch("test_out/output2"),
+    o3=touch("test_out/output3"),
+    y=touch("test_out/y")
+  params:
+    p1="param1",
+    p2="param2",
+    p3=True,
+    zeta=True
+  script:
+    "custom_map.py"
+
+onsuccess:
+  shell("touch testdata/input1 testdata/input2 testdata/input3 testdata/x")
