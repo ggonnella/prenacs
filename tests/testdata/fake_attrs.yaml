@@ -1,0 +1,24 @@
+g1a:
+  datatype: Integer
+  computation_group: g1
+g1b:
+  datatype: Integer
+  computation_group: g1
+g1c:
+  datatype: Integer
+  computation_group: g1
+g1d:
+  datatype: Integer
+  computation_group: g1
+g2a:
+  datatype: Integer
+  computation_group: g2
+g2b:
+  datatype: Integer
+  computation_group: g2
+g3a:
+  datatype: Integer;Float
+  computation_group: g3
+g3b:
+  datatype: Float;Integer[3]
+  computation_group: g3
