@@ -1,0 +1,5 @@
+sqlalchemy
+sqlalchemy_repr
+attrtables
+multiplug
+snacli
