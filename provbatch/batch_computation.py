@@ -9,6 +9,9 @@ import multiplug
 
 class BatchComputation():
   def __init__(self, plugin, verbose=False):
+    """
+    Initialize a batch computation instance based on a plugin.
+    """
     self.plugin = multiplug.importer(plugin, verbose=verbose,
                                      **plugins_helper.COMPUTE_PLUGIN_INTERFACE)
     self.desc = formatting_helper.shorten(Path(plugin).stem, 15)
@@ -68,12 +71,72 @@ class BatchComputation():
       sys.stderr.write("done\n")
     return result
 
-  def select_input(self, globpattern=None, idsfile=None, idscol=None,
+  def _select_input(self, globpattern=None, idsfile=None, idscol=None,
                   idproc_module=None, skip=None, verbose=False):
     idproc = self._get_mod_function(idproc_module, "compute_id", verbose)
     skip = self._compute_skip_set(skip, verbose)
     self.all_ids = self._compute_all_ids(globpattern, idsfile, idscol,
                                          idproc, skip, verbose)
+
+  def input_from_globpattern(self, globpattern, idproc_module=None,
+                             skip=None, verbose=False):
+    """
+    Select the computation input using a glob pattern.
+
+    # Input IDs
+
+    The filename of each file in the glob pattern is used as the input
+    ID passed to the plugin compute function.
+
+    # Output IDs
+
+    If a idproc_module is specified, the ``compute_id`` function of
+    the module is used to compute the output ID.
+    Otherwise the filename is used also as the output ID.
+
+    # Skip computation for some units
+
+    A skip list file can be be defined using the parameter ``skip``.
+    If skip is defined, then the computation is skipped for any
+    output ID that is in the skip list.
+
+    The skip list file can:
+    - contain one output ID per line, or
+    - be a tab-separated file with the output ID in the first column.
+    """
+    self._select_input(globpattern, None, None, idproc_module, skip, verbose)
+
+  def input_from_idsfile(self, idsfilename, idscol, idproc_module=None,
+                         skip=None, verbose=False):
+    """
+    Select the computation input using a tab-separated file.
+
+    # Input IDs
+
+    The entity IDs are passed as input to the plugin compute function.
+    The IDs are obtained from the column specified by the parameter
+    ``idscol`` (1-based column number) of the tab-separated file
+    ``idsfilename``.
+
+    If a idproc_module is specified, the ``compute_id`` function of
+    the module is used to compute the IDs from the column values.
+    Otherwise the IDs are the column values themselves.
+
+    # Output IDs
+
+    The same IDs are used as input and output IDs.
+
+    # Skip computation for some units
+
+    A skip list file can be be defined using the parameter ``skip``.
+    If skip is defined, then the computation is skipped for any
+    ID that is in the skip list.
+
+    The skip list file can:
+    - contain one ID per line, or
+    - be a tab-separated file with the ID in the first column.
+    """
+    self._select_input(None, idsfilename, idscol, idproc_module, skip, verbose)
 
   def set_output(self, outfilename = None, logfilename = None):
     self.outfile = open(outfilename, "a") if outfilename else sys.stdout
@@ -82,6 +145,51 @@ class BatchComputation():
   def setup_computation(self, params = {}, reportfile = sys.stderr,
                         user = None, system = None, reason = None,
                         verbose = False):
+    """
+    Setup the computation.
+
+    It allows to set computation and report parameters and run
+    the plugin initialization code.
+
+    # Computation parameters
+
+    Computation parameters are passed as a dictionary (``params``):
+    - ``state``: a state object, which can change during the computation;
+      it is passed to and/or setup by the initialization function of the plugin
+      (see below)
+    - any other key: any other parameter that the plugin may need
+      and remains constant during the computation
+
+    If no parameters are needed, then params can be omitted and defaults
+    to an empty dictionary.
+
+    ## Plugin initialization
+
+    If the plugin has a ``initialize`` method, it is called.
+    The return value of the ``initialize`` method is stored in the
+    ``state`` parameter.
+
+    If the parameter ``state`` was already defined, it is passed to the
+    ``initialize`` method, and then overwritten with the return value of the
+    ``initialize`` method.
+
+    If a plugin initialization is not needed, then the plugin shall
+    not define an ``initialize`` method.
+
+    ## Report
+
+    The following computation report parameters can be set:
+    - ``reportfile`` sets the output file for the report (default: stderr)
+    - ``user`` sets the user name for the report (default: system user
+       as determined using ``getpass.getuser()``)
+    - ``system`` sets the system name for the report (default: system
+       name as determined using ``socket.gethostname()``)
+    - ``reason`` sets the reason for the computation (default: undefined);
+       it must be None or one of the reasons given in Report.REASONS
+
+    If no report parameters are set, then the report is generated using
+    the default values mentioned above.
+    """
     if self.report:
       raise ValueError("Computation already set up")
     self.report = Report(reportfile, self.plugin,
@@ -113,6 +221,13 @@ class BatchComputation():
     self.report.step()
 
   def run(self, parallel=True, verbose=False):
+    """
+    Run the computation.
+
+    By default, the computation is run in parallel
+    (using a multiprocessing.Pool).
+    Set parallel to False to run the computation serially.
+    """
     if not self.all_ids:
       raise ValueError("Input was not selected")
     if not self.report:
@@ -154,6 +269,12 @@ class BatchComputation():
         self._on_success(output_id, results, logs)
 
   def finalize(self):
+    """
+    This method is called after the computation is finished.
+
+    It finalizes the report, runs the plugin finalization code
+    (if any) and closes the output files.
+    """
     if not self.computed:
       raise ValueError("Computation not run")
     self.report.finalize()
