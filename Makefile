@@ -18,6 +18,7 @@ wheel:
 	${PYTHON} setup.py bdist_wheel
 
 tests:
+	cd multiplug_nim && nimble install --accept --silent
 	pytest
 
 # Remove distribution files
