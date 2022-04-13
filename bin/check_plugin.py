@@ -24,9 +24,8 @@ Options:
 from schema import And, Use, Or
 import yaml
 import os
-from lib import scripts
 import snacli
-from provbatch import PluginInterfaceAnalyser
+from provbatch import PluginInterfaceAnalyser, scripts_helpers
 
 def main(args):
   analyser = PluginInterfaceAnalyser(args["<plugin>"],
@@ -34,10 +33,10 @@ def main(args):
   return analyser.run(args["<definitions>"])
 
 def validated(args):
-  return scripts.validate(args, {"<plugin>": os.path.exists,
+  return scripts_helpers.validate(args, {"<plugin>": os.path.exists,
     "<definitions>": Or(None, And(str, Use(open), Use(yaml.safe_load)))})
 
 with snacli.args(input=["<plugin>", "<definitions>"],
-                 docvars={"common": scripts.args_doc},
+                 docvars={"common": scripts_helpers.common.ARGS_DOC},
                  version="0.1") as args:
   if args: main(validated(args))

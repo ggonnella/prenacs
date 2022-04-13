@@ -61,8 +61,8 @@ Options:
 from schema import Or
 import os
 import sys
-from provbatch import BatchComputation, scripts_helper
 import snacli
+from provbatch import BatchComputation, scripts_helpers
 
 def main(args):
   batch_computation = BatchComputation(args["<plugin>"], args["--verbose"])
@@ -84,11 +84,11 @@ def main(args):
   batch_computation.finalize()
 
 def validated(args):
-  args = scripts_helper.validate(args, scripts_helper.REPORT_ARGS_SCHEMA,
+  args = scripts_helpers.validate(args, scripts_helpers.report.ARGS_SCHEMA,
       {"<globpattern>": Or(None, str),
        "<idsfile>": Or(None, os.path.exists),
        "--idsproc": Or(None, os.path.exists),
-       "<col>": scripts_helper.OPTCOLNUM_VALIDATOR,
+       "<col>": scripts_helpers.common.OPTCOLNUM_VALIDATOR,
        "<plugin>": os.path.exists,
        "--out": Or(None, str),
        "--log": Or(None, str),
@@ -97,12 +97,12 @@ def validated(args):
      args["--skip"] = args["--out"]
   return args
 
-with snacli.args(scripts_helper.REPORT_SNAKE_ARGS,
+with snacli.args(scripts_helpers.report.SNAKE_ARGS,
                  input=["<plugin>", "--idsproc"],
                  log=["--out", "--log"],
                  params=["<globpattern>", "<idsfile>", "<col>", "--verbose",
                          "--skip", "--serial"],
-                 docvars={"common": scripts_helper.COMMON_ARGS_DOC,
-                          "report_opts": scripts_helper.REPORT_ARGS_DOC},
+                 docvars={"common": scripts_helpers.common.ARGS_DOC,
+                          "report_opts": scripts_helpers.report.ARGS_DOC},
                  version="1.0") as args:
   if args: main(validated(args))
