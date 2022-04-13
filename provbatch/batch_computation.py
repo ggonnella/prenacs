@@ -1,8 +1,8 @@
 import sys
 from pathlib import Path
 from glob import glob
-from provbatch import plugins, formatting
-from provbatch.reports import Report
+from provbatch import plugins_helper, formatting_helper
+from provbatch.report import Report
 import tqdm
 from concurrent.futures import as_completed, ProcessPoolExecutor
 import multiplug
@@ -10,12 +10,13 @@ import multiplug
 class BatchComputation():
   def __init__(self, plugin, verbose=False):
     self.plugin = multiplug.importer(plugin, verbose=verbose,
-                                     **plugins.COMPUTE_PLUGIN_INTERFACE)
-    self.desc = formatting.shorten(Path(plugin).stem, 15)
+                                     **plugins_helper.COMPUTE_PLUGIN_INTERFACE)
+    self.desc = formatting_helper.shorten(Path(plugin).stem, 15)
     self.state = None
     self.outfile = sys.stdout
     self.logfile = sys.stderr
     self.all_ids = None
+    self.report = None
     self.params = {}
     self.computed = False
 
@@ -78,15 +79,22 @@ class BatchComputation():
     self.outfile = open(outfilename, "a") if outfilename else sys.stdout
     self.logfile = open(logfilename, "a") if logfilename else sys.stderr
 
-  def setup_computation(self, params = {}, report = None, user = None,
-                        system = None, reason = None, verbose = False):
-    if self.params:
+  def setup_computation(self, params = {}, reportfile = sys.stderr,
+                        user = None, system = None, reason = None,
+                        verbose = False):
+    if self.report:
       raise ValueError("Computation already set up")
-    self.report = Report(report, self.plugin, user, system, reason, params)
+    self.report = Report(reportfile, self.plugin,
+                         user, system, reason, params)
     self.params = params
     if self.plugin.initialize is not None:
       self.params["state"] = \
           self.plugin.initialize(**self.params.get("state", {}))
+
+  def _default_computation_setup(self):
+    self.report = Report(sys.stderr, self.plugin)
+    if self.plugin.initialize is not None:
+      self.params["state"] = self.plugin.initialize()
 
   def _unit_processor(self, input_id):
     return self.plugin.compute(input_id, **self.params)
@@ -108,7 +116,7 @@ class BatchComputation():
     if not self.all_ids:
       raise ValueError("Input was not selected")
     if not self.report:
-      raise ValueError("Computation was not set up")
+      self._default_computation_setup()
     if parallel:
       self._run_in_parallel(verbose)
     else:
