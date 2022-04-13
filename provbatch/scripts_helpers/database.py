@@ -24,9 +24,10 @@ ARGS_SCHEMA = {"<dbuser>": And(str, len),
                "<dbpass>": And(str, len),
                "<dbname>": And(str, len),
                "<dbsocket>": And(str, len, os.path.exists),
-               "<dbpfx>": And(str, len)}
+               "--dbpfx": Or(None, And(str, len))}
 
-SNAKE_ARGS = {"config": ["<dbuser>", "<dbpass>", "<dbname>", "<dbpfx>"],
+SNAKE_ARGS = {"config": ["<dbuser>", "<dbpass>", "<dbname>"],
+              "params": ["--dbpfx"],
               "input": ["<dbsocket>"]}
 
 DB_DRIVER="mysql+mysqldb"

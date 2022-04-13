@@ -1,2 +1,4 @@
 from .batch_computation import BatchComputation
 from .plugin_interface_analyser import PluginInterfaceAnalyser
+from .attribute_definitions_manager import AttributeDefinitionsManager
+from .dbschema.attribute_definition import AttributeDefinition
