@@ -5,14 +5,14 @@
 Exceptions for the library
 """
 
-class PyPluginsError(Exception):
+class MultiplugError(Exception):
   """parent class for package-specific errors"""
   pass
 
-class InterfaceRequirementError(PyPluginsError):
+class InterfaceRequirementError(MultiplugError):
   """raised when a requirement in api_config is not met"""
   pass
 
-class UnsupportedLangError(PyPluginsError):
+class UnsupportedLangError(MultiplugError):
   """raised when a plugin is written in an unsupported language"""
   pass
