@@ -117,7 +117,7 @@ directly to Python, a workaround is used instead. The constants are defined
 as the return value of functions (which are exportable to Python).
 
 The easiest way to import constants is to install the nimble package
-``multiplug_nim`` (distributed with the source code of PyPlugins) and
+``multiplug_nim`` (distributed with the source code of Multiplug) and
 use the macro ``exportpy_consts()``, e.g.:
 ```
 import multiplug_nim/exportpy_consts

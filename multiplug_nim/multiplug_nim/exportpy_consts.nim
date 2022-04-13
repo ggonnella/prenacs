@@ -13,7 +13,7 @@
 # with the macro:
 #   exportpy_consts(X, Y)
 #
-# or, when a different prefix is setup in PyPlugins `api_config`:
+# or, when a different prefix is setup in Multiplug `api_config`:
 #   exportpy_consts_wpfx("c_", X, Y)
 #
 
