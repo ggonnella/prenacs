@@ -3,7 +3,7 @@
 #
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from dbschema.attribute import AttributeDefinition
+from .dbschema.attribute_definition import AttributeDefinition
 
 class AttributeDefinitionsManager():
 

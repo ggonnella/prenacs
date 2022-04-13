@@ -8,7 +8,7 @@ Helper methods for working with the database
 
 import os
 from sqlalchemy.engine.url import URL
-from schema import And
+from schema import And, Or
 
 ARGS_DOC = """\
   dbuser:       database user to use
