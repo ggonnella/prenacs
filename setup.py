@@ -1,3 +1,6 @@
+#
+# (c) 2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 from setuptools import setup, find_packages
 
 def readme():
@@ -9,7 +12,7 @@ if not sys.version_info[0] == 3:
   sys.exit("Sorry, only Python 3 is supported")
 
 setup(name='snacli',
-      version='1.0',
+      version='1.1',
       description='Simplify writing dual use scripts for CLI and Snakemake',
       long_description=readme(),
       long_description_content_type="text/markdown",
