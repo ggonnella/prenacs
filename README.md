@@ -1,3 +1,5 @@
+# MultiPlug
+
 The MultiPlug library is used for creating flexible plugin systems
 for Python programs, supporting multiple programming languages.
 
@@ -6,7 +8,7 @@ a module as one of its command line arguments and import and use the module.
 The user of the script will then select a plugin e.g. from a plugin collection
 or writing it according to a given API specification.
 
-# Features
+## Features
 
 Main features of the library:
 - the library allows the dynamic import of a plugin module, given its filename
@@ -22,7 +24,7 @@ Main features of the library:
   module-level public functions and constants) can be specified and
   automatically checked
 
-# Installation
+## Installation
 
 The Python libraries listed in ``requirements.txt`` are installed automatically,
 if MultiPlug is installed using ``pip``, and can otherwise be installed using
@@ -36,7 +38,7 @@ run ``nimble install`` in the ``multiplug_nim`` directory.
 For supporting plugins written in Rust, the Rust compiler must be installed in
 the system and the _PyO3_ library installed, e.g. using ``cargo install PyO3``.
 
-# Usage
+## Usage
 
 The usage of the library is explained in the
  [user manual](https://github.com/ggonnella/multiplug/blob/main/docs/usage.md).
