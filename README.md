@@ -1,10 +1,10 @@
-ProvBatch: batch computing and results storage system with provenance-tracking
+# ProvBatch
 
 ProvBatch is a system, which allows to run batch computations of attribute
 values for sets of entities, and to store the computation results in a
 database, alongside metadata which allows to track the data provenance.
 
-# Key concepts
+## Key concepts
 
 _Entities_ are thereby object of any kind, characterized by an identifier,
 which allows distinguishing the object from other objects of the same kind.
@@ -37,7 +37,7 @@ identifier of the user starting the computation, and key system data.
 Thus, storing the batch computation UUIDs alongside with computation results,
 ProvBatch allows to keep track of the data provenance.
 
-# Related libraries
+## Related libraries
 
 ProvBatch has been developed as part of an ecosystem of Python libraries,
 including:
@@ -47,7 +47,7 @@ including:
 - _snacli_, which is used for implementing double-purpose scripts, callable
   interactively from the command line, as well as inside a Snakemake pipeline
 
-# Usage
+## Usage
 
 The usage of the library is explained in the
  [user manual](https://github.com/ggonnella/provbatch/blob/main/docs/usage.md).
