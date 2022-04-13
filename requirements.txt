@@ -3,3 +3,5 @@ sqlalchemy_repr
 attrtables
 multiplug
 snacli
+tqdm
+schema
