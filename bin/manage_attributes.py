@@ -5,12 +5,11 @@
 """
 Create attribute definition records and attribute columns in the
 attribute_value tables according to the definitions in a given YAML file.
-
 Optionally remove attribute columns and definition records which are not
 present in the YAML file.
 
 Usage:
-  db_attributes.py [options] {db_args_usage} <definitions>
+  manage_attributes.py [options] {db_args_usage} <definitions>
 
 Arguments:
 {db_args}

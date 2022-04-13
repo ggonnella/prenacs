@@ -3,7 +3,7 @@
 Load computation results into DB from a TSV file and a computation report.
 
 Usage:
-  db_load_results.py [options] {db_args_usage}
+  load_results.py [options] {db_args_usage}
                                <results> <report> <plugin>
 
 Arguments:

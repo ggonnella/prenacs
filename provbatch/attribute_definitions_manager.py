@@ -118,6 +118,12 @@ class AttributeDefinitionsManager():
         if aname not in self.avt.attribute_names:
           self.avt.create_attribute(aname, **adef)
 
+  def apply_definition(self, aname, definition):
+    if aname not in self.avt.attribute_names:
+      self.avt.create_attribute(aname, **definition)
+    else:
+      self.update(aname, definition)
+
   def apply_definitions(self, definitions, drop_missing=True,
                         insert_new=True, update_changed=True):
     if drop_missing:   self.drop_missing(definitions)
