@@ -8,12 +8,13 @@ import inspect
 import multiplug
 from loguru import logger
 
-class PluginInterfaceAnalysis():
+class PluginInterfaceAnalyser():
 
-  def __init__(self, plugin, verbose, outfile=sys.stdout, colorize=True):
+  def __init__(self, plugin, verbose=True, outfile=sys.stdout, colorize=True):
     self.plugin = multiplug.importer(plugin, verbose=verbose)
     self.had_errors = False
-    logger.add(outfile, colorize=colorize, level="INFO")
+    log_level = "INFO" if verbose else "WARNING"
+    logger.add(outfile, colorize=colorize, level=log_level)
 
   def _error(self, msg):
     logger.error(msg)
