@@ -12,7 +12,7 @@ if not sys.version_info[0] == 3:
   sys.exit("Sorry, only Python 3 is supported")
 
 setup(name='multiplug',
-      version='1.0',
+      version='1.1',
       description='Plugin system supporting multiple programming languages',
       long_description=readme(),
       long_description_content_type="text/markdown",
