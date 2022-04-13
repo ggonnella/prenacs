@@ -1,4 +1,4 @@
-# Usage
+# ProvBatch: User manual
 
 ## Implementing a plugin
 
