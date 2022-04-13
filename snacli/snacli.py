@@ -1,3 +1,6 @@
+#
+# (c) 2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 """
 Helper function for combining the use of snakemake and docopt in scripts.
 """

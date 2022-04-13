@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+#
+# (c) 2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 """
 Usage:
   nooutput.py [options] <i1> I2 <p1> [P2]

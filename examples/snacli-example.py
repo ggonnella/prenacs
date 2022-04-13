@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+#
+# (c) 2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 """
 Example script for showing the functionality of SnaCLI.
 

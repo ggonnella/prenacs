@@ -1,3 +1,6 @@
+#
+# (c) 2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 optstr="""
   --common2-input FN    input file common2
   --common2-output FN   output file common2

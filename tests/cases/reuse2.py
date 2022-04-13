@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+#
+# (c) 2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 """
 Usage:
   reuse2.py [options] <input_sp2> <output_sp2>
