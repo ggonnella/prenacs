@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+#
+# (c) 2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 """
 Perform computations on multiple files, using the compute function of the
 specified Python/Nim/Rust/Shell plugin module.

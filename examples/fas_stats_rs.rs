@@ -1,3 +1,8 @@
+/*
+ * (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+ *
+ */
+
 use std::fs::File;
 use std::io::Read;
 use pyo3::prelude::*;

@@ -1,3 +1,6 @@
+#
+# (c) 2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 PLUGIN_METADATA_SCALAR_KEYS = ["ID", "VERSION", "INPUT",
                                "METHOD", "IMPLEMENTATION", "REQ_SOFTWARE",
                                "REQ_HARDWARE", "ADVICE"]

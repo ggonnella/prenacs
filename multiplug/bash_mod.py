@@ -1,3 +1,6 @@
+#
+# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 import sh
 import importlib
 from multiplug.error import InterfaceRequirementError

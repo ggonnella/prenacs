@@ -1,8 +1,9 @@
 #
-# (c) Giorgio Gonnella, 2021-2022
+# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
 #
-# Check the API of a plugin module
-#
+##
+## Check the API of a plugin module
+##
 
 from multiplug.error import InterfaceRequirementError
 
