@@ -30,6 +30,8 @@ if MultiPlug is installed using ``pip``, and can otherwise be installed using
 
 For supporting plugins written in Nim, the Nim compiler must be installed in the
 system and the _nimpy_ library installed, e.g. using ``nimble install nimpy``.
+Furthermore, for using the ``exportpy_consts`` macro in Nim plugins,
+run ``nimble install`` in the ``multiplug_nim`` directory.
 
 For supporting plugins written in Rust, the Rust compiler must be installed in
 the system and the _PyO3_ library installed, e.g. using ``cargo install PyO3``.
