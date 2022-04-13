@@ -1,4 +1,6 @@
-# Importing a plugin module
+# MultiPlug: Usage manual
+
+## Importing a plugin module
 
 To import a plugin module, the function ``multiplug.importer(filename)`` is
 used. The function automatically determines the plugin implementation
@@ -20,7 +22,7 @@ Additionally to the filename the following named parameters are available:
 - ``rust_const_cls``: name of the class to use in the Rust constants export
   system (defailt: ``Constants``)
 
-# Bash plugins limitations
+## Bash plugins limitations
 
 For plugins written in Bash there are some limitations:
 - the return type of the functions, and the constants type is limited to:
@@ -35,7 +37,7 @@ For plugins written in Bash there are some limitations:
 If this limitations are undesired in an application, bash plugins can be
 disabled by setting ``disable_bash``.
 
-# Plugin Functions
+## Plugin Functions
 
 In Python plugins, functions are just defined as in any Python module.
 In Nim plugins, the ``{.exportpy.}`` pragma from the  ``nimpy`` Nim library
@@ -45,7 +47,7 @@ documentation for more information.
 In Bash plugins, functions are defined using some conventions, described
 below, which allow to automatically create their Python wrappers.
 
-## Bash functions arguments
+### Bash functions arguments
 
 All exported functions defined in Bash plugins are wrapped in a function
 which accepts any number of arguments and keyword arguments
@@ -63,7 +65,7 @@ function foo() {
 }
 ```
 
-## Bash function return value
+### Bash function return value
 
 To return a value from Bash, a string is printed using "echo".
 For that reason function shall not print anything else than the return value
@@ -79,7 +81,7 @@ strings is returned by the wrapper. Examples:
   echo "1/n2/t3" # => [["1"], ["2", "3"]] is returned (nested list)
 ```
 
-# Constants
+## Constants
 
 Actually, Python does not really have constants. However, by convention,
 variables names written in ``UPPER_CASE`` are considered constants.
@@ -92,7 +94,7 @@ plugin parameters).
 In Python plugins, the constants are simply defined in the module code.
 For the other languages, some conventions are described below.
 
-## Bash
+### Bash
 
 Constants are defined as variables in the script code.
 Only variables whose name does not start with an underscore are imported.
@@ -110,7 +112,7 @@ NESTED_FOO3=( "bar311"
               "bar3 21\tbar322" )
 ```
 
-## Nim
+### Nim
 
 Since the ``nimpy/nimporter`` system does not allow to export Nim constants
 directly to Python, a workaround is used instead. The constants are defined
@@ -127,7 +129,7 @@ const
 exportpy_consts(FOO, BAR)
 ```
 
-### Implementation details
+#### Implementation details
 
 For each constant, a proc with no arguments is defined in the Nim code,
 which returns the value of the constant. The proc name has a prefix
@@ -136,7 +138,7 @@ in the definition of the Python module attribute.
 E.g.: ``proc py_const_FOO(): string {.exportpy.} = "bar"``
 defines the attribute ``FOO`` with value ``"bar"`` in Python.
 
-### Using a custom prefix
+#### Using a custom prefix
 
 The prefix used in the proc names (by default ``py_const_``) can be changed by
 setting the ``nim_const_pfx`` parameter of the importer function. In this case
@@ -145,7 +147,7 @@ of the ``exportpy_consts()`` macro, where the first parameter is the same
 prefix used in the ``nim_const_pfx`` parameter in the importer function in
 the Python code.
 
-## Rust
+### Rust
 
 Since the ``PyO3/maturin`` system does not allow to export Rust module-level
 constants to Python, a workaround is used instead. The constants are defined
@@ -165,13 +167,13 @@ fn my_module(_py: Python, m: &PyModule) -> PyResult<()> {
   ...
 ```
 
-### Using a custom class name
+#### Using a custom class name
 
 Instead of ``Constants`` a different class name can be specified,
 by setting the ``rust_const_cls`` keyword parameter in the importer function
 to a different string.
 
-# Persistant state between function calls
+## Persistant state between function calls
 
 To implement a state which shall persist between function calls, the plugin
 shall implement an initialization function, creating the state, a
@@ -185,7 +187,7 @@ For Python and Nim it is not particularly challenging to have an initialization
 function, which creates a new state object, and pass the state as an argument
 to other functions.
 
-## Rust
+### Rust
 
 In Rust the state can be implemented as a ``struct``, e.g. ``struct State``.
 The initialization function will return a ``PyResult<Py<State>>``. Thereby the
@@ -197,7 +199,7 @@ function, if any) as the ``state: Py<State>`` argument. To change the state
 ``let mut state = state.borrow_mut(py)`` can be used, where ``py`` is obtained
 as explained above.
 
-## Bash
+### Bash
 
 In Bash the state can be implemented by storing it to file. The initialization
 function can create a state file using $(mktemp) and storing some information
