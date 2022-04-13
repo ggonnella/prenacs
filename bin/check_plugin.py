@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+#
+# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+#
+
 """
 Check that a computation plugin respects the specification
 given in plugins/README.md.

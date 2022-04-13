@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+
 #
 # (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
 #
+
 """
 Create attribute definition records and attribute columns in the
 attribute_value tables according to the definitions in a given YAML file.

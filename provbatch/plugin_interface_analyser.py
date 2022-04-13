@@ -1,3 +1,6 @@
+#
+# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 """
 Analyses the interface of a computation plugin for compliance
 with the interface specification.

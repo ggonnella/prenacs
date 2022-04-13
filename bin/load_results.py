@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+#
+# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+#
+
 """
 Load computation results into DB from a TSV file and a computation report.
 

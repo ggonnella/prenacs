@@ -1,3 +1,7 @@
+#
+# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+#
+
 #!/usr/bin/env python3
 import db_attributes
 import db_create_tables

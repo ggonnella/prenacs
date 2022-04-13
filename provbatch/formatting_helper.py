@@ -1,3 +1,6 @@
+#
+# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 def shorten(s: str, limit: int, placeholder: str = "...") -> str:
   """
   Shorten a string to a string with maximum length limit.

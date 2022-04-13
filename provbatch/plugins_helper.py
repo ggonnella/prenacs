@@ -1,3 +1,6 @@
+#
+# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 COMPUTE_PLUGIN_INTERFACE = {}
 COMPUTE_PLUGIN_INTERFACE["req_func"] = ["compute"]
 COMPUTE_PLUGIN_INTERFACE["opt_func"] = ["initialize", "finalize"]

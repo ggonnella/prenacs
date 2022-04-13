@@ -1,3 +1,6 @@
+#
+# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+#
 from .batch_computation import BatchComputation
 from .plugin_interface_analyser import PluginInterfaceAnalyser
 from .attribute_definitions_manager import AttributeDefinitionsManager
