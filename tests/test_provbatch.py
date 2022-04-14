@@ -2,115 +2,74 @@
 # (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
 #
 
-#!/usr/bin/env python3
-import db_attributes
-import db_create_tables
-import db_load_results
-from lib import db
+import pytest
 from sqlalchemy import create_engine, select, text
 from sqlalchemy.schema import MetaData
 import yaml
 from pathlib import Path
 import uuid
 import os
+from attrtables import AttributeValueTables
+from provbatch import AttributeDefinition, AttributeDefinitionsManager, \
+                      ResultsLoader
+import provbatch.database
 
 ECHO=False
-ENVVAR="PROSTTEST"
 SELFPATH = Path(os.path.abspath(os.path.dirname(__file__)))
 TESTDATA = SELFPATH / "testdata"
+PREFIX = "pr_attribute_value_t"
 
-def create_tables():
-  args = db.args_from_env(ENVVAR)
-  args["--verbose"] = ECHO
-  for mod in ["computation_report", "plugin_description", "attribute"]:
-    args["<schema>"] = SELFPATH / "dbschema" / f"{mod}.py"
-    db_create_tables.main(args)
+def check_attributes(definitions, connection):
+  meta = MetaData()
+  meta.reflect(bind=connection)
+  adef_t = meta.tables["pr_attribute_definition"]
+  rows = connection.execute(select(adef_t.c.name, adef_t.c.datatype,
+                                   adef_t.c.computation_group)).all()
+  assert(set(r.name for r in rows) == set(definitions.keys()))
+  for r in rows:
+    assert(r.datatype == definitions[r.name]["datatype"])
+    assert(r.computation_group == definitions[r.name]["computation_group"])
+  assert(f"{PREFIX}4" not in meta.tables)
+  for n in [0, 1, 2, 3]:
+    assert(f"{PREFIX}{n}" in meta.tables)
+  print(set(meta.tables[f"{PREFIX}0"].c.keys()))
+  assert(set(meta.tables[f"{PREFIX}0"].c.keys()) ==
+         {"entity_id", "g1a_v", "g1a_c", "g1b_v", "g1b_c",
+                       "g1c_v", "g1c_c", "g1_g"})
+  assert(set(meta.tables[f"{PREFIX}1"].c.keys()) ==
+         {"entity_id", "g1d_v", "g1d_c", "g1_g",
+                       "g2a_v", "g2a_c", "g2b_v", "g2b_c", "g2_g"})
+  assert(set(meta.tables[f"{PREFIX}2"].c.keys()) ==
+         {"entity_id", "g3a_v0", "g3a_v1", "g3a_c", "g3_g"})
+  assert(set(meta.tables[f"{PREFIX}3"].c.keys()) ==
+         {"entity_id", "g3b_v0", "g3b_v1", "g3b_v2", "g3b_v3",
+                       "g3b_c", "g3_g"})
 
-def run_create_attributes(definitions):
-  args = db.args_from_env(ENVVAR)
-  args["<definitions>"] = definitions
-  args["--testmode"] = True
-  args["--verbose"] = ECHO
-  db_attributes.main(args)
-
-def check_attributes(definitions):
-  engine = create_engine(db.connstr_env(ENVVAR), echo=ECHO, future=True)
-  with engine.connect() as connection:
-    meta = MetaData()
-    meta.reflect(bind=engine)
-    adef_t = meta.tables["pr_attribute_definition"]
-    rows = connection.execute(select(adef_t.c.name, adef_t.c.datatype,
-                                     adef_t.c.computation_group)).all()
-    assert(set(r.name for r in rows) == set(definitions.keys()))
-    for r in rows:
-      assert(r.datatype == definitions[r.name]["datatype"])
-      assert(r.computation_group == definitions[r.name]["computation_group"])
-    pfx = "pr_attribute_value_t"
-    assert(f"{pfx}4" not in meta.tables)
-    for n in [0, 1, 2, 3]:
-      assert(f"{pfx}{n}" in meta.tables)
-    print(set(meta.tables[f"{pfx}0"].c.keys()))
-    assert(set(meta.tables[f"{pfx}0"].c.keys()) ==
-           {"entity_id", "g1a_v", "g1a_c", "g1b_v", "g1b_c",
-                         "g1c_v", "g1c_c", "g1_g"})
-    assert(set(meta.tables[f"{pfx}1"].c.keys()) ==
-           {"entity_id", "g1d_v", "g1d_c", "g1_g",
-                         "g2a_v", "g2a_c", "g2b_v", "g2b_c", "g2_g"})
-    assert(set(meta.tables[f"{pfx}2"].c.keys()) ==
-           {"entity_id", "g3a_v0", "g3a_v1", "g3a_c", "g3_g"})
-    assert(set(meta.tables[f"{pfx}3"].c.keys()) ==
-           {"entity_id", "g3b_v0", "g3b_v1", "g3b_v2", "g3b_v3",
-                         "g3b_c", "g3_g"})
-
-def check_no_attributes(definitions):
-  engine = create_engine(db.connstr_env(ENVVAR), echo=ECHO, future=True)
-  with engine.connect() as connection:
-    meta = MetaData()
-    meta.reflect(bind=engine)
-    adef_t = meta.tables["pr_attribute_definition"]
-    rows = connection.execute(select(adef_t.c.name, adef_t.c.datatype,
-                                     adef_t.c.computation_group)).all()
-    assert(len(rows) == 0)
-    for r in rows:
-      assert(r.datatype == definitions[r.name]["datatype"])
-      assert(r.computation_group == definitions[r.name]["computation_group"])
-    pfx = "pr_attribute_value_t"
-    assert(f"{pfx}4" not in meta.tables)
-    for n in [0, 1, 2, 3]:
-      assert(f"{pfx}{n}" in meta.tables)
-      assert(set(meta.tables[f"{pfx}{n}"].c.keys()) == {"entity_id"})
-
-def run_load_results(n):
-  args = db.args_from_env(ENVVAR)
-  args["<report>"] = open(TESTDATA / f"fake_report{n}.yaml")
-  args["<results>"] = TESTDATA/f"fake_results{n}.tsv"
-  args["<plugin>"] = TESTDATA/f"fake_plugin{n}.py"
-  args["--verbose"] = ECHO
-  db_load_results.main(args)
-  args["<report>"].close()
-
-def run_destroy_attributes():
-  args = db.args_from_env(ENVVAR)
-  args["<definitions>"] = {}
-  args["--drop"] = True
-  args["--verbose"] = ECHO
-  db_attributes.main(args)
+def check_no_attributes(connection):
+  meta = MetaData()
+  meta.reflect(bind=connection)
+  adef_t = meta.tables["pr_attribute_definition"]
+  rows = connection.execute(select(adef_t.c.name, adef_t.c.datatype,
+                                   adef_t.c.computation_group)).all()
+  assert(len(rows) == 0)
+  assert(f"{PREFIX}4" not in meta.tables)
+  for n in [0, 1, 2, 3]:
+    assert(f"{PREFIX}{n}" in meta.tables)
+    assert(set(meta.tables[f"{PREFIX}{n}"].c.keys()) == {"entity_id"})
 
 def computation_id(n):
   return uuid.UUID(f'00000000-0000-0000-0000-00000000000{n}').bytes
 
-def get_attribute_value_rows():
- engine = create_engine(db.connstr_env(ENVVAR), echo=ECHO, future=True)
- with engine.connect() as connection:
-   meta = MetaData()
-   meta.reflect(bind=engine)
-   tnums = [0,1,2,3]
-   r = []
-   for n in tnums:
-     t = meta.tables[f"pr_attribute_value_t{n}"]
-     rows = connection.execute(select(t)).all()
-     r.append({row.entity_id: row for row in rows})
-   return r
+def get_attribute_value_rows(connection):
+  meta = MetaData()
+  meta.reflect(bind=connection)
+  tnums = [0,1,2,3]
+  r = []
+  for n in tnums:
+    t = meta.tables[f"pr_attribute_value_t{n}"]
+    rows = connection.execute(select(t)).all()
+    r.append({row.entity_id: row for row in rows})
+  return r
 
 def check_g1_t0(row, run):
   if run != 2:
@@ -176,40 +135,39 @@ def check_g3_t3(row, run):
   else:
     assert(row.g3_g == computation_id(6))
 
-def check_values_after_run(run):
-    r = get_attribute_value_rows()
+def check_values_after_run(n, connection):
+  r = get_attribute_value_rows(connection)
+  for accession in ['A1','A2','A3','A4']:
+    check_g1_t0(r[0][accession], n)
+    check_g1_t1(r[1][accession], n)
+    check_g2_t1(r[1][accession], n)
+  if n <= 4:
+    assert(r[2] == {})
+    assert(r[3] == {})
+  else:
     for accession in ['A1','A2','A3','A4']:
-      check_g1_t0(r[0][accession], run)
-      check_g1_t1(r[1][accession], run)
-      check_g2_t1(r[1][accession], run)
-    if run <= 4:
-      assert(r[2] == {})
-      assert(r[3] == {})
-    else:
-      for accession in ['A1','A2','A3','A4']:
-        check_g3_t2(r[2][accession], run)
-        check_g3_t3(r[3][accession], run)
+      check_g3_t2(r[2][accession], n)
+      check_g3_t3(r[3][accession], n)
 
-def drop_dangling_tables():
-  engine = create_engine(db.connstr_env(ENVVAR), echo=ECHO, future=True)
-  with engine.connect() as connection:
-    connection.execute(text("DROP TABLE IF EXISTS pr_attribute_definition"))
-    for n in [0,1,2,3, "temporary"]:
-      connection.execute(text(f"DROP TABLE IF EXISTS pr_attribute_value_t{n}"))
-    connection.execute(text("DROP TABLE IF EXISTS pr_computation_report"))
-    connection.execute(text("DROP TABLE IF EXISTS pr_attribute_definition"))
-    connection.execute(text("DROP TABLE IF EXISTS pr_plugin_description"))
+def run_load_results(n, avt):
+  results_loader = ResultsLoader(avt, TESTDATA/f"fake_plugin{n}.py",
+                                 verbose=ECHO)
+  results_loader.run(TESTDATA/f"fake_results{n}.tsv",
+                     TESTDATA/f"fake_report{n}.yaml",
+                     verbose=ECHO)
 
-def test_provbatch():
-  drop_dangling_tables()
-  create_tables()
+def test_provbatch(connection):
+  avt = AttributeValueTables(connection,
+                             attrdef_class=AttributeDefinition,
+                             tablename_prefix=PREFIX)
+  avt.target_n_columns = 9
+  adm = AttributeDefinitionsManager(avt)
   with open(TESTDATA/"fake_attrs.yaml") as f:
     definitions = yaml.safe_load(f)
-  run_create_attributes(definitions)
-  check_attributes(definitions)
+  adm.apply_definitions(definitions)
+  check_attributes(definitions, connection)
   for testn in [1, 2, 1, 3, 4, 5, 6, 7]:
-    print("Running test", testn)
-    run_load_results(testn)
-    check_values_after_run(testn)
-  run_destroy_attributes()
-  check_no_attributes(definitions)
+    run_load_results(testn, avt)
+    check_values_after_run(testn, connection)
+  adm.apply_definitions({})
+  check_no_attributes(connection)

@@ -8,9 +8,13 @@ import os
 from sqlalchemy import create_engine, inspect, exc
 from sqlalchemy.orm import Session
 from sqlalchemy.engine.url import URL
+from attrtables import AttributeValueTables
+import provbatch
+from provbatch import AttributeDefinition
 import yaml
 
 VERBOSE_CONNECTION = True
+DEBUG_MODE = False
 
 @pytest.fixture(scope="session")
 def connection_string():
@@ -28,11 +32,21 @@ def connection_string():
     args['query'] = {'unix_socket': config['socket']}
   return URL.create(**args)
 
+def drop_all(connection):
+  avt = AttributeValueTables(connection,
+                             attrdef_class=AttributeDefinition,
+                             tablename_prefix="pr_attribute_value_t")
+  provbatch.database.drop(connection, avt)
+
 @pytest.fixture(scope="session")
 def connection(connection_string):
   engine = create_engine(connection_string, echo=VERBOSE_CONNECTION,
                          future=True)
   with engine.connect() as conn:
     with conn.begin():
+      drop_all(conn)
+      provbatch.database.create(conn)
       yield conn
+      if not DEBUG_MODE:
+        drop_all(conn)
       conn.commit()
