@@ -11,7 +11,7 @@ import getpass
 
 class Report():
 
-  REASONS = ["new_data", "new_attributes", "improve_precision"]
+  REASONS = ["new_entities", "new_attributes", "recompute"]
 
   def _init_plugin(self, plugin):
     if plugin is None:
