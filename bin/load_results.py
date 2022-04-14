@@ -30,7 +30,8 @@ import sys
 import os
 from sqlalchemy import create_engine
 import snacli
-from provbatch import scripts_helpers, ResultsLoader
+from attrtables import AttributeValueTables
+from provbatch import scripts_helpers, ResultsLoader, AttributeDefinition
 
 def main(args):
   if os.stat(args["<results>"]).st_size == 0:
@@ -42,10 +43,12 @@ def main(args):
                          future=True)
   with engine.connect() as connection:
     with connection.begin():
-      results_loader = ResultsLoader(connection, args["<plugin>"],
+      avt = AttributeValueTables(connection,
+                               attrdef_class=AttributeDefinition,
+                               tablename_prefix="_".join(args["--dbpfx"],
+                                              "attribute_value_t"))
+      results_loader = ResultsLoader(avt, args["<plugin>"],
                                      args["--replace-plugin-record"],
-                                     "_".join(args["--dbpfx"],
-                                              "attribute_value_t"),
                                      args["--verbose"])
       results_loader.run(args["<results>"], args["<report>"].
                          args["--replace-report-record"], args["--verbose"])
@@ -53,7 +56,7 @@ def main(args):
 def validated(args):
   return scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
                   {"<results>": And(str, open),
-                   "<report>": And(str, Use(open)),
+                   "<report>": And(str, open),
                    "<plugin>": And(str, open),
                    "--replace-plugin-record": Or(None, True, False),
                    "--replace-report-record": Or(None, True, False)})

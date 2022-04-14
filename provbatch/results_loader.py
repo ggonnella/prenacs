@@ -8,11 +8,10 @@ import yaml
 import os
 from sqlalchemy import inspect
 from sqlalchemy.orm import Session
-from attrtables import AttributeValueTables
 from provbatch import plugins_helper, AttributeDefinition, PluginDescription,\
                       ComputationReport
 
-def ResultsLoader():
+class ResultsLoader():
 
   @staticmethod
   def _different_fields(obj1, obj2):
@@ -52,17 +51,16 @@ def ResultsLoader():
         "Please either set the replace-plugin-record option or increase the "+\
         "plugin version number")
 
-  def __init__(self, connection, plugin_fn, replace_plugin_record=False,
-               tablename_prefix="attribute_value_t", verbose=False):
+  def __init__(self, attribute_value_tables, plugin_fn,
+               replace_plugin_record=False, verbose=False):
     self.plugin = multiplug.importer(plugin_fn, verbose=verbose,
                                      **plugins_helper.COMPUTE_PLUGIN_INTERFACE)
-    self.connection = connection
+    self.connection = attribute_value_tables.connectable
+    self.avt = attribute_value_tables
     session = Session(bind=self.connection)
-    self._process_plugin_description(session, self.plugin, replace_plugin_record)
+    self._process_plugin_description(session, self.plugin,
+                                     replace_plugin_record)
     session.commit()
-    self.avt = AttributeValueTables(connection,
-                               attrdef_class=AttributeDefinition,
-                               tablename_prefix=tablename_prefix)
 
   def _check_plugin_key(self, report_data):
     for key in ["ID", "VERSION"]:
@@ -75,7 +73,8 @@ def ResultsLoader():
 
   def _process_computation_report(self, report_file, replace):
     session = Session(bind=self.connection)
-    report_data = yaml.safe_load(report_file)
+    with open(report_file) as report:
+      report_data = yaml.safe_load(report)
     self._check_plugin_key(report_data)
     uuid = report_data["uuid"]
     self._insert_update_or_compare(session,\
