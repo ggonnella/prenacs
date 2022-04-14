@@ -2,19 +2,253 @@
 
 ## Implementing a plugin
 
-- _multiplug_ plus specific information (copy from Prost)
-- ``check_plugin.py`` script
+In order to perform a computation, a _plugin_ must be implemented. A plugin
+determines how one or multiple attributes of entities are computed.
+Furthermore, it contains metadata, which is stored alongside the computation
+results, in order to document the data provenance.
+
+The plugin system is generic and implemented as a separate package,
+named ``MultiPlug``. Plugins for ProvBatch must implement a specific interface,
+which is described in the ``package.md`` file.
+
+If a plugin which had been already used for computations changes,
+its version number must be incremented, so that a new plugin metadata
+record is created, when the new computation results are loaded into the
+database.
+
+### Checking the plugin implementation
+
+In order to check if a plugin has been implemented correctly, it is possible
+to use the ``check_plugin.py`` script. This loads the plugin module and
+analyses the exposed programming interface of the plugin, reporting
+any error to the user.
+
+## Database setup
+
+The library was designed and tested using MariaDB. Other database
+management systems can be used, in which case some adjustments may be needed.
+The database must be already setup before the library can be used.
+The database server must be started.
+
+The following parameters are passed
+to the scripts, which connect to the database:
+- ``--dbuser``: database user to use
+- ``--dbpass``: password of the database user
+- ``--dbname``: database name
+- ``--dbsocket``: connection socket file
+- ``--dbpfx``: database tables prefix
 
 ## Managing the attributes
 
-- ``manage_attributes.py`` script
-  (run without --drop, with or without --update, for creating
-   the attribute set necessary for a plugin)
+Before running a computation, the attributes which are computed by the
+computation plugin must be added to the database.
+
+For this a ``manage_attributes.py`` script is provided.
+The attributes must be described in a YAML file, which contains a dictionary,
+with one key for each attribute.
+
+Each attribute key contains a dictionary as value.
+
+The following keys must be defined for each attribute:
+- ``datatype``: the datatype of the attribute.
+- ``definition``: a free text describing the attribute
+
+Furthermore, the following keys can be defined:
+- ``ontology_xref``: link to an ontology term, which defines the same attribute
+- ``related_ontology_terms``: links to ontology terms, which do not directly
+describe the attribute, but are related to its definition
+- ``unit``: the measure unit for the attribute
+- ``remark``: a free text remark
+- ``computation_group``: multiple attributes which are usually computed
+together by plugins shall contain a common unique computation group
+identifier in this field
+
+### Changing attribute defitions
+
+Note that if an attribute definition has changed, some further operations are
+needed.
+
+If the ``datatype`` or ``computation_group`` of an attribute has not changed,
+the ``manage_attributes.py`` script can be run using the ``--update`` option.
+This updates the attribute definition record.
+
+If the ``datatype`` or ``computation_group`` of an attribute has changed,
+the attribute must be dropped from the database, before adding it again.
+This means that the entire data for the attribute will be lost!
+This can be achieved by running the ``drop_attribute.py`` script.
+After that, the attribute can be re-added by running
+``manage_attributes.py`` with the attribute definition file.
 
 ## Batch computing
 
-- ``batch_compute.py`` script
+The ``batch_compute.py`` script is used for running a computation,
+using a plugin. This assumes that the attributes computed by the plugin
+have been added to the database, as explained in the previous section.
+By default the computation is run in parallel, using the
+``mutliprocessing`` module. If a serial computation is desired,
+the ``--serial`` option can be used.
+
+The batch compute function must locate the entities on which the
+computation shall be run. The input entities can be provided as
+a set of entity identifiers
+can be provided as a list or in a column of a tabular file.
+Alternatively a set of input files, one per entity, can be provided
+(specified using a globpattern).
+These different options are explained in the following sections.
+
+For performance reasons, the computation results are not loaded directly
+into the database and instead, they are first saved to a tabular file.
+By default the results are output to the standard output, but the ``--out``
+option can be used to specify a different file.
+The first column contains the entity IDs. The following columns are the
+results of the computation in the order specified by the plugin OUTPUT
+constant. Note that each of the attribute can in some cases
+include multiple columns.
+
+Besides the attribute values, a computation report is output,
+which contains the computation metadata in YAML format.
+This file is necessary, in order to load the computation results
+into the database. The output is by default to the standar error, but
+a different file can be specified using the ``--report`` option.
+Additional metadata for the report can be provided using further
+options (see below).
+
+Finally, a log file with additional information is output (by default to
+the standard error, but a different file can be specified using
+the ``--log`` option). This contains any further information about the
+computation returned by the plugin ``compute`` function.
+The output is tabular (tab-separated). The first column contains the
+the entity IDs. The following columns contains the information
+messages returned by the plugin. Each entity attribute computation
+can generate zero, one or multiple lines.
+
+### Input entities provided as a set of identifiers
+
+If the input entities are specified as a set of entity IDs, the ``ids``
+subcommand of ``batch_compute.py`` is used. In this case the filename of the
+IDs file must be provided.
+
+The file shall be either a list of entity IDs, with one ID per line, or a
+tabular file, in which the entity IDs are contained in a column. In the second
+case, the 1-based column number is also specified to ``batch_compute.py``.
+
+The IDs are passed to the plugin ``compute()`` function as argument, and are
+used as first column of the output.
+
+#### Computed entity IDs
+
+It is possible also to use a list or tabular file is available,
+containing IDs from which the entity IDs
+can be computed, instead of the entity IDs themselves.
+
+To achieve this, a module is created, which defines a
+``compute_id(str)->str`` mapping function; the input of the function
+is the ID provided in the ID list and the output is the entity ID.
+The module filename is passed to ``batch_compute.py`` using the
+``idsproc`` option.
+
+### Input entities provided as a set of input files
+
+If the input entities are provided as a set of files, the ``files`` subcommand
+of ``batch_compute.py`` is used.
+
+The plugin ``compute()`` function of the plugin gets then the filename as
+first argument.
+
+In most cases, it is desirable to compute the entity IDs which shall be
+used as a first column of the output.
+To achieve this, a module is created, which defines a
+``compute_id(str)->str`` mapping function; the input of the function
+is the filename and the output is the entity ID to use in the output.
+The module filename is passed to ``batch_compute.py`` using the
+``idsproc`` option.
+
+If no ``idsproc`` module is provided, the first column of the output
+contains the input filename instead of an entity ID.
+
+### Incremental computations
+
+It is possible to automatically avoid the recomputation for entities,
+for which a value has already been computed previously.
+
+If a filename is provided using the ``--skip`` option, the entity IDs of
+previous computations are read from the first column of this tabular file. If
+the ID of an entity in the input (eventually after applying ``idsproc``) is
+equal to one of the entity IDs of previous computations, then the computation
+is skipped.
+
+If the ``--out`` option is used and the output file already exists,
+the existing output file is also used as ``--skip`` file.
+
+### Computation parameters
+
+The computation parameters can be provided to the plugin as a YAML file,
+using the ``--params`` option.
+
+The parameters are passed to the ``compute()`` function as keyword
+arguments. The type and meaning of the parameters must be described
+in the ``PARAMETERS`` constant of the plugin.
+
+The computation parameters
+are assumed to remain constant during the computation, i.e. the same
+value is seen by each instance of ``compute()``.
+
+If a parameter is called ``state``, it is handled in special way
+(see next section). For this parameter, it is not assumed that the
+value remains constant, and no description is necessary in the
+``PARAMETERS`` plugin metadata constant.
+
+### Computation state
+
+Differently from the computation parameters, a computation state can be
+defined. which possibly changes during the computation. When handling the
+computation state, it shall be thereby considered that the computation
+is run by default in parallel, using multiple processes.
+
+The state is created by defining an``initialize()`` function in the plugin. The
+function is run at the beginning of the batch computation and its return value
+of ``initialize()`` is passed as keyword parameter ``state`` to the
+``compute()`` function. If necessary, a ``finalize()`` function can be defined
+by the plugin, which can perform teardown operations at the end of the batch
+computation.
+
+#### State initialization parameters
+
+It is possible to provide parameters to the initialization function.
+For this, a parameter in the file passed using the ``--params`` option
+shall be named ``state``. This is handled in a special way: it is assumed
+to be a dictionary with string keys. Its content is passed
+to the ``initialize()`` function as keyword arguments.
+The value of ``state`` is then overwritten by the return value of
+``initialize()``.
+
+### Report file metadata
+
+The report file contains the username of the user starting the computation.
+By default, this is computed using ``getpass.getuser()``. However a different
+value can be provided using the ``--user`` option.
+
+Furthermore, the name of the system on which the computation is run is added
+to the report. By default, this is computed using ``socket.gethostname()``.
+However, a different value can be provided using the ``--system`` option.
+
+Optionally, the reason for the computation can be stated and added to the
+report. The valid values for this are contained in the ``REASONS`` constants
+of the ``Report`` class of the ``report.py`` module and are:
+- ``new_entities``: the computation was run on entities, which did not exist
+                    yet in the database
+- ``new_attributes``: the computation was run on entities, which already existed
+                      in the database, in order to compute new attributes
+- ``recompute``: the computation was run on entities, which already existed in
+                 the database, for attributes for which a value was already
+                 computed before
 
 ## Loading the computation results
 
-- ``load_results.py`` script
+In order to load the results of the computation into the database, the
+``load_results.py`` script is used. To it the output files of
+``batch_compute.py`` (results and computation report) are passed.
+
+The same plugin used for the batch computing must also be provided,
+so that the plugin metadata can be stored in the database.
+
