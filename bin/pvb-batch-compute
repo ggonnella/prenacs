@@ -10,8 +10,8 @@ specified Python/Nim/Rust plugin module (see plugins/README.md for the plugins
 specification).
 
 Usage:
-  batch_compute.py <plugin> ids <idsfile> [<col>] [options]
-  batch_compute.py <plugin> files <globpattern> [options]
+  pvb-batch-compute <plugin> ids <idsfile> [<col>] [options]
+  pvb-batch-compute <plugin> files <globpattern> [options]
 
 The compute function is applied to each input ID or filename (see below).
 Unless --skip is used and the input ID (or ID computed from the filename)

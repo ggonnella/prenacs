@@ -5,23 +5,20 @@
 #
 
 """
-Create a attribute definition record and attribute columns in the
-attribute_value tables according to the definition in a given YAML file.
+Drop an attribute definition record and attribute columns in the
+attribute_value tables.
 
 Usage:
-  create_attribute.py [options] {db_args_usage} <name> <definition>
+  pvb-drop-attribute [options] {db_args_usage} <name>
 
 Arguments:
 {db_args}
   <name>       name of the attribute
-  definition:  YAML file containing the attribute definition
 
 Options:
-  --testmode       use the parameters for tests
 {common}
 """
-from schema import And, Or, Use
-import yaml
+from schema import And, Or
 from sqlalchemy import create_engine
 import snacli
 from attrtables import AttributeValueTables
@@ -35,24 +32,21 @@ def main(args):
                          future=True)
   with engine.connect() as connection:
     with connection.begin():
-      kwargs = {"target_n_columns": 9} if args["--testmode"] else {}
       avt = AttributeValueTables(connection,
                                  attrdef_class=AttributeDefinition,
                                  tablename_prefix="_".join(\
-                                     args["--dbpfx"], "attribute_value_t"),
-                                 **kwargs)
+                                     args["--dbpfx"], "attribute_value_t"))
       adm = AttributeDefinitionsManager(avt)
-      adm.insert(args["<name>"], args["<definition>"])
+      adm.drop(args["<name>"])
 
 def validated(args):
   return scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
       {"<name>": And(str, len),
-       "<definition>": And(str, Use(open), Use(yaml.safe_load)),
        "--testmode":   Or(None, True, False)})
 
 with snacli.args(scripts_helpers.database.SNAKE_ARGS,
-                 input=["<name>", "<definition>"],
-                 params=["--testmode", "--verbose"],
+                 input=["<name>"],
+                 params=["--verbose"],
                  docvars={"common": scripts_helpers.common.ARGS_DOC,
                           "db_args": scripts_helpers.database.ARGS_DOC,
                           "db_args_usage": scripts_helpers.database.ARGS_USAGE},

@@ -11,7 +11,7 @@ Optionally remove attribute columns and definition records which are not
 present in the YAML file.
 
 Usage:
-  manage_attributes.py [options] {db_args_usage} <definitions>
+  pvb-manage-attributes [options] {db_args_usage} <definitions>
 
 Arguments:
 {db_args}

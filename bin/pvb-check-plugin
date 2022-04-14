@@ -16,7 +16,7 @@ The following is checked:
   contained in the given attribute definitions file
 
 Usage:
-  check_plugin.py <plugin> <definitions> [options]
+  pvb-check-plugin <plugin> <definitions> [options]
 
 Arguments:
   plugin:       Python or Nim batch_compute.py plugin module

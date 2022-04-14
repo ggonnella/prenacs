@@ -8,8 +8,8 @@
 Load computation results into DB from a TSV file and a computation report.
 
 Usage:
-  load_results.py [options] {db_args_usage}
-                               <results> <report> <plugin>
+  pvb-load-results [options] {db_args_usage}
+                             <results> <report> <plugin>
 
 Arguments:
 {db_args}
