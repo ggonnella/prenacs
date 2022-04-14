@@ -9,7 +9,8 @@ results, in order to document the data provenance.
 
 The plugin system is generic and implemented as a separate package,
 named ``MultiPlug``. Plugins for ProvBatch must implement a specific interface,
-which is described in the ``package.md`` file.
+which is described in the
+[plugin implementation guide](https://github.com/ggonnella/provbatch/blob/main/docs/plugin.md).
 
 If a plugin which had been already used for computations changes,
 its version number must be incremented, so that a new plugin metadata
@@ -19,7 +20,7 @@ database.
 ### Checking the plugin implementation
 
 In order to check if a plugin has been implemented correctly, it is possible
-to use the ``check_plugin.py`` script. This loads the plugin module and
+to use the ``pvb-check-plugin`` script. This loads the plugin module and
 analyses the exposed programming interface of the plugin, reporting
 any error to the user.
 
@@ -43,45 +44,110 @@ to the scripts, which connect to the database:
 Before running a computation, the attributes which are computed by the
 computation plugin must be added to the database.
 
-For this a ``manage_attributes.py`` script is provided.
-The attributes must be described in a YAML file, which contains a dictionary,
-with one key for each attribute.
+For this a ``pvb-manage-attributes`` script is provided.
+The attributes metadata must be described in a YAML file,
+which contains a dictionary, with one key for each attribute.
 
-Each attribute key contains a dictionary as value.
+### Attribute metadata
 
-The following keys must be defined for each attribute:
-- ``datatype``: the datatype of the attribute.
+The attribute metadata files contains a dictionary where each key is
+a string - the attribute name - and each value is a dictionary -
+the attribute metadata.
+
+The following keys must be defined in each attribute metadata:
 - ``definition``: a free text describing the attribute
+- ``datatype``: the datatype of the attribute.
+
+Thereby, the datatype shall be expressed as described in the
+[datatypes section](https://github.com/ggonnella/attrtables/blob/main/docs/usage.md#datatype-description)
+of the attrtables package documentation
 
 Furthermore, the following keys can be defined:
+- ``computation_group``: multiple attributes which are usually computed
+together by plugins shall contain a common unique computation group
+identifier in this field
 - ``ontology_xref``: link to an ontology term, which defines the same attribute
 - ``related_ontology_terms``: links to ontology terms, which do not directly
 describe the attribute, but are related to its definition
 - ``unit``: the measure unit for the attribute
 - ``remark``: a free text remark
-- ``computation_group``: multiple attributes which are usually computed
-together by plugins shall contain a common unique computation group
-identifier in this field
 
-### Changing attribute defitions
+### Example
 
-Note that if an attribute definition has changed, some further operations are
-needed.
+For example, a file ``basic_seqstats.yaml`` could contain:
+```
+gc_content:
+  definition: fraction of the total bases of a sequence, which are G or C
+  datatype: Float
+  computation_group: basic_seqstats
+seqlen:
+  definition: seuqence length
+  unit: bases
+  datatype: Integer
+  computation_group: basic_seqstats
+```
+
+The database can be prepared for storing the attributes defined in the file,
+using:
+```
+pvb-manage-attributes <dbuser> <dbpass> <dbname> <dbsocket> \
+                      basic_seqstats.yaml
+```
+
+### Changing attribute metadata by constant datatype and computation group
 
 If the ``datatype`` or ``computation_group`` of an attribute has not changed,
-the ``manage_attributes.py`` script can be run using the ``--update`` option.
+the ``pvb-manage-attributes`` script can be run using the ``--update`` option.
 This updates the attribute definition record.
+
+For example, the metadata of GC content given in the previous section
+could be given slightly differently in a file ``gc_content.yaml``:
+```
+gc_content:
+  definition: portion of bases of a sequence, which are G or C
+  datatype: Float
+  computation_group: basic_seqstats
+```
+
+Since the ``definition`` changes, but not the ``datatype`` or
+``computation_group``, this metadata could be used for updating the
+``gc_content`` attribute record, as follows:
+```
+pvb-manage-attributes <dbuser> <dbpass> <dbname> <dbsocket> \
+                      --update gc_content.yaml
+```
+
+### Changing attribute metadata with different datatype and computation group
 
 If the ``datatype`` or ``computation_group`` of an attribute has changed,
 the attribute must be dropped from the database, before adding it again.
 This means that the entire data for the attribute will be lost!
-This can be achieved by running the ``drop_attribute.py`` script.
+This can be achieved by running the ``pvb-drop-attribute`` script.
 After that, the attribute can be re-added by running
-``manage_attributes.py`` with the attribute definition file.
+``pvb-manage-attributes`` with the attribute definition file.
+
+For example, the metadata of GC content given in the previous section
+could be given with a different ``computation_group`` value
+in a file ``seq_composition_stats.yaml``:
+```
+gc_content:
+  definition: fraction of the total bases of a sequence, which are G or C
+  datatype: Float
+  computation_group: seq_composition_stats
+```
+
+If we want to use this definition, the existing data for GC content must be
+destroyed, then the attribute definition is re-added, using:
+```
+# be careful: this deletes all the data for the attribute!
+pvb-drop-attribute <dbuser> <dbpass> <dbname> <dbsocket> gc_content
+pvb-manage-attributes <dbuser> <dbpass> <dbname> <dbsocket> \
+                      seq_composition_stats.yaml
+```
 
 ## Batch computing
 
-The ``batch_compute.py`` script is used for running a computation,
+The ``pvb-batch-compute`` script is used for running a computation,
 using a plugin. This assumes that the attributes computed by the plugin
 have been added to the database, as explained in the previous section.
 By default the computation is run in parallel, using the
@@ -125,12 +191,12 @@ can generate zero, one or multiple lines.
 ### Input entities provided as a set of identifiers
 
 If the input entities are specified as a set of entity IDs, the ``ids``
-subcommand of ``batch_compute.py`` is used. In this case the filename of the
+subcommand of ``pvb-batch-compute`` is used. In this case the filename of the
 IDs file must be provided.
 
 The file shall be either a list of entity IDs, with one ID per line, or a
 tabular file, in which the entity IDs are contained in a column. In the second
-case, the 1-based column number is also specified to ``batch_compute.py``.
+case, the 1-based column number is also specified to ``pvb-batch-compute``.
 
 The IDs are passed to the plugin ``compute()`` function as argument, and are
 used as first column of the output.
@@ -150,7 +216,7 @@ The module filename is passed to ``batch_compute.py`` using the
 ### Input entities provided as a set of input files
 
 If the input entities are provided as a set of files, the ``files`` subcommand
-of ``batch_compute.py`` is used.
+of ``pvb-batch-compute`` is used.
 
 The plugin ``compute()`` function of the plugin gets then the filename as
 first argument.
@@ -246,8 +312,8 @@ of the ``Report`` class of the ``report.py`` module and are:
 ## Loading the computation results
 
 In order to load the results of the computation into the database, the
-``load_results.py`` script is used. To it the output files of
-``batch_compute.py`` (results and computation report) are passed.
+``pvb-load-results`` script is used. To it the output files of
+``pvb-batch-compute`` (results and computation report) are passed.
 
 The same plugin used for the batch computing must also be provided,
 so that the plugin metadata can be stored in the database.
