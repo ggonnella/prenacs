@@ -36,7 +36,7 @@ def main(args):
                                  attrdef_class=AttributeDefinition,
                                  tablename_prefix="_".join(\
                                      args["--dbpfx"], "attribute_value_t"))
-      adm = AttributeDefinitionsManager(avt, connection)
+      adm = AttributeDefinitionsManager(avt)
       adm.drop(args["<name>"])
 
 def validated(args):

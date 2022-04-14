@@ -47,7 +47,7 @@ def main(args):
                                      args["--dbpfx"], "attribute_value_t"),
                                  **kwargs)
       if args["--check"]:  avt.check_consistency()
-      adm = AttributeDefinitionsManager(avt, connection)
+      adm = AttributeDefinitionsManager(avt)
       if args["--update"]: adm.update_changed(args["<definitions>"])
       if args["--drop"]:   adm.drop_missing(args["<definitions>"])
       adm.insert_new(args["<definitions>"])

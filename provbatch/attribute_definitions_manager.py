@@ -7,9 +7,9 @@ from .dbschema.attribute_definition import AttributeDefinition
 
 class AttributeDefinitionsManager():
 
-  def __init__(self, attribute_value_tables, connection):
+  def __init__(self, attribute_value_tables):
     self.avt = attribute_value_tables
-    self.connection = connection
+    self.connection = attribute_value_tables.connectable
 
   def _check_invariant_column(self, adef, fname, fvalue):
     prev_value = getattr(adef, fname)
