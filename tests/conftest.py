@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, inspect, exc
 from sqlalchemy.orm import Session
 from sqlalchemy.engine.url import URL
 from attrtables import AttributeValueTables
-import provbatch
+import provbatch.database
 from provbatch import AttributeDefinition
 import yaml
 
