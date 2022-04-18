@@ -222,10 +222,15 @@ class BatchComputation():
 
   def _on_success(self, output_id, results, logs):
     results = "\t".join([str(r) for r in results])
-    self.outfile.write(f"{output_id}\t{results}\n")
-    if self.logfile and logs:
-      for msg in logs:
-        self.logfile.write(f"{output_id}\t{msg}\n")
+    if results:
+      self.outfile.write(f"{output_id}\t{results}\n")
+    for element in logs:
+      if isinstance(element, list):
+        for subelement in element:
+          if subelement:
+            self.logfile.write(f"{output_id}\t{subelement}\n")
+      elif element:
+        self.logfile.write(f"{output_id}\t{element}\n")
     self.report.step()
 
   def run(self, parallel=True, verbose=False):
@@ -260,7 +265,7 @@ class BatchComputation():
                               desc=self.desc):
         output_id = futures_map[future]
         try:
-          results, logs = future.result()
+          results, *logs = future.result()
         except Exception as exc:
           self._on_failure(output_id, exc)
           raise(exc)
@@ -274,7 +279,7 @@ class BatchComputation():
     for unit_ids in tqdm.tqdm(self.all_ids, desc=self.desc):
       output_id = unit_ids[1]
       try:
-        results, logs = self.plugin.compute(unit_ids[0], **self.params)
+        results, *logs = self.plugin.compute(unit_ids[0], **self.params)
       except Exception as exc:
         self._on_failure(output_id, exc)
         raise(exc)
