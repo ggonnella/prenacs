@@ -14,8 +14,11 @@ ARGS_DOC = """\
   dbuser:       database user to use
   dbpass:       password of the database user
   dbname:       database name
-  dbsocket:     connection socket file
-  dbpfx:        database tables prefix\
+  dbsocket:     connection socket file\
+"""
+
+OPTS_DOC = """\
+  --dbpfx PFX      database tablenames prefix to use (default: prenacs_)\
 """
 
 ARGS_USAGE="<dbuser> <dbpass> <dbname> <dbsocket>"

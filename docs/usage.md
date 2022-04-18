@@ -1,4 +1,4 @@
-# ProvBatch: User manual
+# Prenacs User manual
 
 ## Implementing a plugin
 
@@ -8,9 +8,9 @@ Furthermore, it contains metadata, which is stored alongside the computation
 results, in order to document the data provenance.
 
 The plugin system is generic and implemented as a separate package,
-named ``MultiPlug``. Plugins for ProvBatch must implement a specific interface,
+named ``MultiPlug``. Plugins for Prenacs must implement a specific interface,
 which is described in the
-[plugin implementation guide](https://github.com/ggonnella/provbatch/blob/main/docs/plugin.md).
+[plugin implementation guide](https://github.com/ggonnella/prenacs/blob/main/docs/plugin.md).
 
 If a plugin which had been already used for computations changes,
 its version number must be incremented, so that a new plugin metadata
@@ -20,7 +20,7 @@ database.
 ### Checking the plugin implementation
 
 In order to check if a plugin has been implemented correctly, it is possible
-to use the ``pvb-check-plugin`` script. This loads the plugin module and
+to use the ``prenacs-check-plugin`` script. This loads the plugin module and
 analyses the exposed programming interface of the plugin, reporting
 any error to the user.
 
@@ -44,7 +44,7 @@ to the scripts, which connect to the database:
 Before running a computation, the attributes which are computed by the
 computation plugin must be added to the database.
 
-For this a ``pvb-manage-attributes`` script is provided.
+For this a ``prenacs-manage-attributes`` script is provided.
 The attributes metadata must be described in a YAML file,
 which contains a dictionary, with one key for each attribute.
 
@@ -90,14 +90,14 @@ seqlen:
 The database can be prepared for storing the attributes defined in the file,
 using:
 ```
-pvb-manage-attributes <dbuser> <dbpass> <dbname> <dbsocket> \
+prenacs-manage-attributes <dbuser> <dbpass> <dbname> <dbsocket> \
                       basic_seqstats.yaml
 ```
 
 ### Changing attribute metadata by constant datatype and computation group
 
 If the ``datatype`` or ``computation_group`` of an attribute has not changed,
-the ``pvb-manage-attributes`` script can be run using the ``--update`` option.
+the ``prenacs-manage-attributes`` script can be run using the ``--update`` option.
 This updates the attribute definition record.
 
 For example, the metadata of GC content given in the previous section
@@ -113,7 +113,7 @@ Since the ``definition`` changes, but not the ``datatype`` or
 ``computation_group``, this metadata could be used for updating the
 ``gc_content`` attribute record, as follows:
 ```
-pvb-manage-attributes <dbuser> <dbpass> <dbname> <dbsocket> \
+prenacs-manage-attributes <dbuser> <dbpass> <dbname> <dbsocket> \
                       --update gc_content.yaml
 ```
 
@@ -122,9 +122,9 @@ pvb-manage-attributes <dbuser> <dbpass> <dbname> <dbsocket> \
 If the ``datatype`` or ``computation_group`` of an attribute has changed,
 the attribute must be dropped from the database, before adding it again.
 This means that the entire data for the attribute will be lost!
-This can be achieved by running the ``pvb-drop-attribute`` script.
+This can be achieved by running the ``prenacs-drop-attribute`` script.
 After that, the attribute can be re-added by running
-``pvb-manage-attributes`` with the attribute definition file.
+``prenacs-manage-attributes`` with the attribute definition file.
 
 For example, the metadata of GC content given in the previous section
 could be given with a different ``computation_group`` value
@@ -140,14 +140,14 @@ If we want to use this definition, the existing data for GC content must be
 destroyed, then the attribute definition is re-added, using:
 ```
 # be careful: this deletes all the data for the attribute!
-pvb-drop-attribute <dbuser> <dbpass> <dbname> <dbsocket> gc_content
-pvb-manage-attributes <dbuser> <dbpass> <dbname> <dbsocket> \
+prenacs-drop-attribute <dbuser> <dbpass> <dbname> <dbsocket> gc_content
+prenacs-manage-attributes <dbuser> <dbpass> <dbname> <dbsocket> \
                       seq_composition_stats.yaml
 ```
 
 ## Batch computing
 
-The ``pvb-batch-compute`` script is used for running a computation,
+The ``prenacs-batch-compute`` script is used for running a computation,
 using a plugin. This assumes that the attributes computed by the plugin
 have been added to the database, as explained in the previous section.
 By default the computation is run in parallel, using the
@@ -191,12 +191,12 @@ can generate zero, one or multiple lines.
 ### Input entities provided as a set of identifiers
 
 If the input entities are specified as a set of entity IDs, the ``ids``
-subcommand of ``pvb-batch-compute`` is used. In this case the filename of the
+subcommand of ``prenacs-batch-compute`` is used. In this case the filename of the
 IDs file must be provided.
 
 The file shall be either a list of entity IDs, with one ID per line, or a
 tabular file, in which the entity IDs are contained in a column. In the second
-case, the 1-based column number is also specified to ``pvb-batch-compute``.
+case, the 1-based column number is also specified to ``prenacs-batch-compute``.
 
 The IDs are passed to the plugin ``compute()`` function as argument, and are
 used as first column of the output.
@@ -216,7 +216,7 @@ The module filename is passed to ``batch_compute.py`` using the
 ### Input entities provided as a set of input files
 
 If the input entities are provided as a set of files, the ``files`` subcommand
-of ``pvb-batch-compute`` is used.
+of ``prenacs-batch-compute`` is used.
 
 The plugin ``compute()`` function of the plugin gets then the filename as
 first argument.
@@ -312,8 +312,8 @@ of the ``Report`` class of the ``report.py`` module and are:
 ## Loading the computation results
 
 In order to load the results of the computation into the database, the
-``pvb-load-results`` script is used. To it the output files of
-``pvb-batch-compute`` (results and computation report) are passed.
+``prenacs-load-results`` script is used. To it the output files of
+``prenacs-batch-compute`` (results and computation report) are passed.
 
 The same plugin used for the batch computing must also be provided,
 so that the plugin metadata can be stored in the database.

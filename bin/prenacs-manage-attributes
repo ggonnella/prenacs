@@ -11,7 +11,7 @@ Optionally remove attribute columns and definition records which are not
 present in the YAML file.
 
 Usage:
-  pvb-manage-attributes [options] {db_args_usage} <definitions>
+  prenacs-manage-attributes [options] {db_args_usage} <definitions>
 
 Arguments:
 {db_args}
@@ -23,6 +23,7 @@ Options:
   --check          check consistency of definition records and attribute columns
   --update         update definitions if changed
   --testmode       use the parameters for tests
+{db_opts}
 {common}
 """
 from schema import And, Or, Use
@@ -30,9 +31,9 @@ import yaml
 from sqlalchemy import create_engine
 import snacli
 from attrtables import AttributeValueTables
-from provbatch import scripts_helpers,\
-                      AttributeDefinitionsManager,\
-                      AttributeDefinition
+from prenacs import scripts_helpers,\
+                    AttributeDefinitionsManager,\
+                    AttributeDefinition
 
 def main(args):
   engine = create_engine(scripts_helpers.database.connection_string_from(args),
@@ -43,9 +44,7 @@ def main(args):
       kwargs = {"target_n_columns": 9} if args["--testmode"] else {}
       avt = AttributeValueTables(connection,
                                  attrdef_class=AttributeDefinition,
-                                 tablename_prefix="_".join(\
-                                     args["--dbpfx"], "attribute_value_t"),
-                                 **kwargs)
+                                 tablename_prefix=args["--dbpfx"], **kwargs)
       if args["--check"]:  avt.check_consistency()
       adm = AttributeDefinitionsManager(avt)
       if args["--update"]: adm.update_changed(args["<definitions>"])
@@ -53,19 +52,23 @@ def main(args):
       adm.insert_new(args["<definitions>"])
 
 def validated(args):
-  return scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
+  args = scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
       {"<definitions>": And(str, Use(open), Use(yaml.safe_load)),
        "--update":      Or(None, True, False),
        "--testmode":    Or(None, True, False),
        "--drop":        Or(None, True, False),
-       "--check":       Or(None, True, False)})
+       "--check":       Or(None, True, False),
+       "--dbpfx":       Or(None, str)})
+  args["--dbpfx"] = args["--dbpfx"] or "prenacs_attribute_value_t"
+  return args
 
 with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                  input=["<definitions>"],
                  params=["--drop", "--check", "--update", "--testmode",
-                         "--verbose"],
+                         "--verbose", "--dbpfx"],
                  docvars={"common": scripts_helpers.common.ARGS_DOC,
                           "db_args": scripts_helpers.database.ARGS_DOC,
+                          "db_opts": scripts_helpers.database.OPTS_DOC,
                           "db_args_usage": scripts_helpers.database.ARGS_USAGE},
                  version="1.0") as args:
   if args: main(validated(args))

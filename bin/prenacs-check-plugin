@@ -16,7 +16,7 @@ The following is checked:
   contained in the given attribute definitions file
 
 Usage:
-  pvb-check-plugin <plugin> <definitions> [options]
+  prenacs-check-plugin <plugin> <definitions> [options]
 
 Arguments:
   plugin:       Python or Nim batch_compute.py plugin module
@@ -30,7 +30,7 @@ from schema import And, Use, Or
 import yaml
 import os
 import snacli
-from provbatch import PluginInterfaceAnalyser, scripts_helpers
+from prenacs import PluginInterfaceAnalyser, scripts_helpers
 
 def main(args):
   analyser = PluginInterfaceAnalyser(args["<plugin>"],

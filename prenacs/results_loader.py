@@ -8,7 +8,7 @@ import yaml
 import os
 from sqlalchemy import inspect
 from sqlalchemy.orm import Session
-from provbatch import plugins_helper, AttributeDefinition, PluginDescription,\
+from prenacs import plugins_helper, AttributeDefinition, PluginDescription,\
                       ComputationReport
 
 class ResultsLoader():

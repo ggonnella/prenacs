@@ -5,7 +5,7 @@
 from schema import Or, And, Use
 import sys
 import yaml
-from provbatch.report import Report
+from prenacs.report import Report
 
 YAMLFILE_VALIDATOR = Or(And(None, Use(lambda n: {})),
                         And(Use(open), Use(lambda fn: yaml.safe_load(fn))))

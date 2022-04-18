@@ -20,14 +20,14 @@ class ComputationReport(Base):
   Tables storing the results of computations can refer to this table for the
   sake of data traceability and computation reproducibility.
   """
-  __tablename__ = 'pr_computation_report'
+  __tablename__ = 'prenacs_computation_report'
   uuid = Column(BINARY(16), primary_key=True)
   plugin_id = Column(String(256), nullable=False)
   plugin_version = Column(String(64), nullable=False)
   parameters = Column(Text(4096))
   unit = Column(Enum("assembly"), nullable=False, default="assembly")
   n_units = Column(Integer, default=1)
-  reason = Column(Enum("new_data", "new_attributes", "improve_precision"))
+  reason = Column(Enum("new_entities", "new_attributes", "recompute"))
   comp_status = Column(Enum("running", "completed", "partial", "aborted"),
                   nullable=False, default="running")
   system_id = Column(String(64))

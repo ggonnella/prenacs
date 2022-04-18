@@ -17,7 +17,7 @@ class PluginDescription(Base):
   """
   Describes a plugin for assembly attributes computation.
   """
-  __tablename__ = "pr_plugin_description"
+  __tablename__ = "prenacs_plugin_description"
   id = Column(String(256), primary_key=True)
   version = Column(String(64), primary_key=True)
   input = Column(String(512), nullable=False)

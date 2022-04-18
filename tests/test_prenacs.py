@@ -4,15 +4,15 @@
 
 import yaml
 from attrtables import AttributeValueTables
-from provbatch import AttributeDefinition, AttributeDefinitionsManager,\
+from prenacs import AttributeDefinition, AttributeDefinitionsManager,\
                       ResultsLoader
-from helper import PREFIX, ECHO, TESTDATA, check_attributes, \
+from helper import PFXAVT, ECHO, TESTDATA, check_attributes, \
                     check_values_after_run, check_no_attributes
 
-def test_provbatch_library(connection):
+def test_prenacs_library(connection):
   avt = AttributeValueTables(connection,
                              attrdef_class=AttributeDefinition,
-                             tablename_prefix=PREFIX)
+                             tablename_prefix=PFXAVT)
   avt.target_n_columns = 9
   adm = AttributeDefinitionsManager(avt)
   with open(TESTDATA/"fake_attrs.yaml") as f:

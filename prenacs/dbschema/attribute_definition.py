@@ -21,7 +21,7 @@ class AttributeDefinition(Base):
   ontology link; otherwise the ontology link is a term which is
   related to the definition, in a way described in the definition.
   """
-  __tablename__ = "pr_attribute_definition"
+  __tablename__ = "prenacs_attribute_definition"
   name = Column(String(62), primary_key=True)
   datatype = Column(String(256), nullable=False)
   definition = Column(Text(4096))

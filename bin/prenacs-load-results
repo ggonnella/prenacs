@@ -8,7 +8,7 @@
 Load computation results into DB from a TSV file and a computation report.
 
 Usage:
-  pvb-load-results [options] {db_args_usage}
+  prenacs-load-results [options] {db_args_usage}
                              <results> <report> <plugin>
 
 Arguments:
@@ -23,6 +23,7 @@ Options:
                            plugin, if changed (default: fail if changed)
   --replace-report-record  replace existing db record for the computation
                            report, if changed (default: fail if changed)
+{db_opts}
 {common}
 """
 from schema import And, Or, Use
@@ -31,7 +32,7 @@ import os
 from sqlalchemy import create_engine
 import snacli
 from attrtables import AttributeValueTables
-from provbatch import scripts_helpers, ResultsLoader, AttributeDefinition
+from prenacs import scripts_helpers, ResultsLoader, AttributeDefinition
 
 def main(args):
   if os.stat(args["<results>"]).st_size == 0:
@@ -45,8 +46,7 @@ def main(args):
     with connection.begin():
       avt = AttributeValueTables(connection,
                                attrdef_class=AttributeDefinition,
-                               tablename_prefix="_".join(args["--dbpfx"],
-                                              "attribute_value_t"))
+                               tablename_prefix=args["--dbpfx"])
       results_loader = ResultsLoader(avt, args["<plugin>"],
                                      args["--replace-plugin-record"],
                                      args["--verbose"])
@@ -54,12 +54,15 @@ def main(args):
                          args["--replace-report-record"], args["--verbose"])
 
 def validated(args):
-  return scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
+  args = scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
                   {"<results>": And(str, open),
                    "<report>": And(str, open),
                    "<plugin>": And(str, open),
                    "--replace-plugin-record": Or(None, True, False),
-                   "--replace-report-record": Or(None, True, False)})
+                   "--replace-report-record": Or(None, True, False),
+                   "--dbpfx":      Or(None, str)})
+  args["--dbpfx"] = args["--dbpfx"] or "prenacs_attribute_value_t"
+  return args
 
 with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                  input=["<results>", "<report>", "<plugin>"],
@@ -67,6 +70,7 @@ with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                          "--verbose"],
                  docvars={"common": scripts_helpers.common.ARGS_DOC,
                           "db_args": scripts_helpers.database.ARGS_DOC,
+                          "db_opts": scripts_helpers.database.OPTS_DOC,
                           "db_args_usage": scripts_helpers.database.ARGS_USAGE},
                  version="1.0") as args:
   if args: main(validated(args))

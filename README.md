@@ -1,8 +1,11 @@
-# ProvBatch
+# Prenacs
 
-ProvBatch is a system, which allows to run batch computations of attribute
+Prenacs is a system, which allows to run batch computations of attribute
 values for sets of entities, and to store the computation results in a
 database, alongside metadata which allows to track the data provenance.
+
+The name is an acronym for
+"PRovenance-tracking ENtity Attrtibute Computation and Storage system".
 
 ## Key concepts
 
@@ -39,7 +42,7 @@ ProvBatch allows to keep track of the data provenance.
 
 ## Related libraries
 
-ProvBatch has been developed as part of an ecosystem of Python libraries,
+Prenacs has been developed as part of an ecosystem of Python libraries,
 including:
 - _multiplug_, which implements the infrastructure for the plugin system
 - _attrtables_, which implements the infrastructure for the storage of
@@ -50,4 +53,4 @@ including:
 ## Usage
 
 The usage of the library is explained in the
- [user manual](https://github.com/ggonnella/provbatch/blob/main/docs/usage.md).
+ [user manual](https://github.com/ggonnella/prenacs/blob/main/docs/usage.md).

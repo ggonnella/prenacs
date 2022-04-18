@@ -8,9 +8,9 @@ COLNUM_VALIDATOR = And(Use(int), lambda n: n>0)
 OPTCOLNUM_VALIDATOR = Or(And(None, Use(lambda n: 1)), COLNUM_VALIDATOR)
 
 ARGS_DOC = """\
-  --verbose, -v  be verbose
-  --version, -V  show script version
-  --help, -h     show this help message"""
+  --verbose, -v    be verbose
+  --version, -V    show script version
+  --help, -h       show this help message"""
 
 ARGS_SCHEMA = {Optional("--verbose", default=None): Or(None, True, False),
                                                     Optional(str): object}

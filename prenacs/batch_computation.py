@@ -4,8 +4,8 @@
 import sys
 from pathlib import Path
 from glob import glob
-from provbatch import plugins_helper, formatting_helper
-from provbatch.report import Report
+from prenacs import plugins_helper, formatting_helper
+from prenacs.report import Report
 import tqdm
 from concurrent.futures import as_completed, ProcessPoolExecutor
 import multiplug
