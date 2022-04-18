@@ -1,9 +1,9 @@
 #
 # (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
 #
-from .dbschema.attribute_definition import AttributeDefinition
-from .dbschema.plugin_description import PluginDescription
-from .dbschema.computation_report import ComputationReport
+from prenacs.dbschema.attribute_definition import AttributeDefinition
+from prenacs.dbschema.plugin_description import PluginDescription
+from prenacs.dbschema.computation_report import ComputationReport
 
 def create(connection):
   AttributeDefinition.metadata.create_all(connection)

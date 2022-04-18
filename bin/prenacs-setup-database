@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+
+#
+# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+#
+
+"""
+Create the tables for storing attribute, plugin and computation metadata.
+
+Usage:
+  prenacs-setup-database [options] {db_args_usage}
+
+Arguments:
+{db_args}
+
+Options:
+{db_opts}
+{common}
+"""
+from schema import And, Or, Use
+import yaml
+from sqlalchemy import create_engine
+import snacli
+from attrtables import AttributeValueTables
+import prenacs.database
+from prenacs import scripts_helpers,\
+                    AttributeDefinitionsManager,\
+                    AttributeDefinition
+
+def main(args):
+  engine = create_engine(scripts_helpers.database.connection_string_from(args),
+                         echo=args["--verbose"],
+                         future=True)
+  with engine.connect() as connection:
+    with connection.begin():
+      prenacs.database.create(connection)
+
+def validated(args):
+  return scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA)
+
+with snacli.args(scripts_helpers.database.SNAKE_ARGS,
+                 params=["--verbose"],
+                 docvars={"common": scripts_helpers.common.ARGS_DOC,
+                          "db_opts": scripts_helpers.database.OPTS_DOC,
+                          "db_args": scripts_helpers.database.ARGS_DOC,
+                          "db_args_usage": scripts_helpers.database.ARGS_USAGE},
+                 version="1.0") as args:
+  if args: main(validated(args))

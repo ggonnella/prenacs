@@ -39,6 +39,9 @@ to the scripts, which connect to the database:
 - ``--dbsocket``: connection socket file
 - ``--dbpfx``: database tables prefix
 
+Before the first use, the script ``prenacs-setup-databse`` must be run,
+which creates the necessary metadata tables.
+
 ## Managing the attributes
 
 Before running a computation, the attributes which are computed by the
