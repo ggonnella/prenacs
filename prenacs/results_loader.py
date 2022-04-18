@@ -3,13 +3,11 @@
 #
 
 import multiplug
-import sys
 import yaml
 import os
 from sqlalchemy import inspect
 from sqlalchemy.orm import Session
-from prenacs import plugins_helper, AttributeDefinition, PluginDescription,\
-                      ComputationReport
+from prenacs import plugins_helper, PluginDescription, ComputationReport
 
 class ResultsLoader():
 

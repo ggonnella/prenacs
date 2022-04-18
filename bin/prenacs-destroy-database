@@ -5,28 +5,24 @@
 #
 
 """
-Drop an attribute definition record and attribute columns in the
-attribute_value tables.
+Destroy the entire database
 
 Usage:
-  prenacs-drop-attribute [options] {db_args_usage} <name>
+  prenacs-destroy-database [options] {db_args_usage}
 
 Arguments:
 {db_args}
-  <name>       name of the attribute
 
 Options:
 {db_opts}
 {common}
 """
-from schema import And, Or
+from schema import Or
 from sqlalchemy import create_engine
 import snacli
 from attrtables import AttributeValueTables
-from prenacs import scripts_helpers,\
-                    AttributeDefinitionsManager,\
-                    AttributeDefinition
-from prenacs.database import DEFAULT_AVT_PREFIX
+import prenacs.database
+from prenacs import scripts_helpers, AttributeDefinition
 
 def main(args):
   engine = create_engine(scripts_helpers.database.connection_string_from(args),
@@ -37,19 +33,15 @@ def main(args):
       avt = AttributeValueTables(connection,
                                  attrdef_class=AttributeDefinition,
                                  tablename_prefix=args["--dbpfx"])
-      adm = AttributeDefinitionsManager(avt)
-      adm.drop(args["<name>"])
+      prenacs.database.drop(connection, avt)
 
 def validated(args):
   args = scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
-      {"<name>": And(str, len),
-       "--testmode":   Or(None, True, False),
-       "--dbpfx":      Or(None, str)})
-  args["--dbpfx"] = args["--dbpfx"] or DEFAULT_AVT_PREFIX
+                                  {"--dbpfx": Or(None, str)})
+  args["--dbpfx"] = args["--dbpfx"] or "prenacs_attribute_value_t"
   return args
 
 with snacli.args(scripts_helpers.database.SNAKE_ARGS,
-                 input=["<name>"],
                  params=["--verbose"],
                  docvars={"common": scripts_helpers.common.ARGS_DOC,
                           "db_opts": scripts_helpers.database.OPTS_DOC,

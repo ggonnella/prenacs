@@ -17,15 +17,10 @@ Options:
 {db_opts}
 {common}
 """
-from schema import And, Or, Use
-import yaml
 from sqlalchemy import create_engine
 import snacli
-from attrtables import AttributeValueTables
 import prenacs.database
-from prenacs import scripts_helpers,\
-                    AttributeDefinitionsManager,\
-                    AttributeDefinition
+from prenacs import scripts_helpers
 
 def main(args):
   engine = create_engine(scripts_helpers.database.connection_string_from(args),

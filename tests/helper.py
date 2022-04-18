@@ -6,50 +6,51 @@ from sqlalchemy.schema import MetaData
 from pathlib import Path
 import uuid
 import os
-from provbatch import ResultsLoader
 
 ECHO=False
 SELFPATH = Path(os.path.abspath(os.path.dirname(__file__)))
 TESTDATA = SELFPATH / "testdata"
-PREFIX = "pr_attribute_value_t"
+BIN = SELFPATH / ".." / "bin"
+PREFIX = "prenacs_"
+PFXAVT = f"{PREFIX}attribute_value_t"
 
 def check_attributes(definitions, connection):
   meta = MetaData()
   meta.reflect(bind=connection)
-  adef_t = meta.tables["pr_attribute_definition"]
+  adef_t = meta.tables[f"{PREFIX}attribute_definition"]
   rows = connection.execute(select(adef_t.c.name, adef_t.c.datatype,
                                    adef_t.c.computation_group)).all()
   assert(set(r.name for r in rows) == set(definitions.keys()))
   for r in rows:
     assert(r.datatype == definitions[r.name]["datatype"])
     assert(r.computation_group == definitions[r.name]["computation_group"])
-  assert(f"{PREFIX}4" not in meta.tables)
+  assert(f"{PFXAVT}4" not in meta.tables)
   for n in [0, 1, 2, 3]:
-    assert(f"{PREFIX}{n}" in meta.tables)
-  print(set(meta.tables[f"{PREFIX}0"].c.keys()))
-  assert(set(meta.tables[f"{PREFIX}0"].c.keys()) ==
+    assert(f"{PFXAVT}{n}" in meta.tables)
+  print(set(meta.tables[f"{PFXAVT}0"].c.keys()))
+  assert(set(meta.tables[f"{PFXAVT}0"].c.keys()) ==
          {"entity_id", "g1a_v", "g1a_c", "g1b_v", "g1b_c",
                        "g1c_v", "g1c_c", "g1_g"})
-  assert(set(meta.tables[f"{PREFIX}1"].c.keys()) ==
+  assert(set(meta.tables[f"{PFXAVT}1"].c.keys()) ==
          {"entity_id", "g1d_v", "g1d_c", "g1_g",
                        "g2a_v", "g2a_c", "g2b_v", "g2b_c", "g2_g"})
-  assert(set(meta.tables[f"{PREFIX}2"].c.keys()) ==
+  assert(set(meta.tables[f"{PFXAVT}2"].c.keys()) ==
          {"entity_id", "g3a_v0", "g3a_v1", "g3a_c", "g3_g"})
-  assert(set(meta.tables[f"{PREFIX}3"].c.keys()) ==
+  assert(set(meta.tables[f"{PFXAVT}3"].c.keys()) ==
          {"entity_id", "g3b_v0", "g3b_v1", "g3b_v2", "g3b_v3",
                        "g3b_c", "g3_g"})
 
 def check_no_attributes(connection):
   meta = MetaData()
   meta.reflect(bind=connection)
-  adef_t = meta.tables["pr_attribute_definition"]
+  adef_t = meta.tables[f"{PREFIX}attribute_definition"]
   rows = connection.execute(select(adef_t.c.name, adef_t.c.datatype,
                                    adef_t.c.computation_group)).all()
   assert(len(rows) == 0)
-  assert(f"{PREFIX}4" not in meta.tables)
+  assert(f"{PFXAVT}4" not in meta.tables)
   for n in [0, 1, 2, 3]:
-    assert(f"{PREFIX}{n}" in meta.tables)
-    assert(set(meta.tables[f"{PREFIX}{n}"].c.keys()) == {"entity_id"})
+    assert(f"{PFXAVT}{n}" in meta.tables)
+    assert(set(meta.tables[f"{PFXAVT}{n}"].c.keys()) == {"entity_id"})
 
 def computation_id(n):
   return uuid.UUID(f'00000000-0000-0000-0000-00000000000{n}').bytes
@@ -60,7 +61,7 @@ def get_attribute_value_rows(connection):
   tnums = [0,1,2,3]
   r = []
   for n in tnums:
-    t = meta.tables[f"{PREFIX}{n}"]
+    t = meta.tables[f"{PFXAVT}{n}"]
     rows = connection.execute(select(t)).all()
     r.append({row.entity_id: row for row in rows})
   return r

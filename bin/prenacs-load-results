@@ -26,13 +26,14 @@ Options:
 {db_opts}
 {common}
 """
-from schema import And, Or, Use
+from schema import And, Or
 import sys
 import os
 from sqlalchemy import create_engine
 import snacli
 from attrtables import AttributeValueTables
 from prenacs import scripts_helpers, ResultsLoader, AttributeDefinition
+from prenacs.database import DEFAULT_AVT_PREFIX
 
 def main(args):
   if os.stat(args["<results>"]).st_size == 0:
@@ -50,7 +51,7 @@ def main(args):
       results_loader = ResultsLoader(avt, args["<plugin>"],
                                      args["--replace-plugin-record"],
                                      args["--verbose"])
-      results_loader.run(args["<results>"], args["<report>"].
+      results_loader.run(args["<results>"], args["<report>"],
                          args["--replace-report-record"], args["--verbose"])
 
 def validated(args):
@@ -61,7 +62,7 @@ def validated(args):
                    "--replace-plugin-record": Or(None, True, False),
                    "--replace-report-record": Or(None, True, False),
                    "--dbpfx":      Or(None, str)})
-  args["--dbpfx"] = args["--dbpfx"] or "prenacs_attribute_value_t"
+  args["--dbpfx"] = args["--dbpfx"] or DEFAULT_AVT_PREFIX
   return args
 
 with snacli.args(scripts_helpers.database.SNAKE_ARGS,

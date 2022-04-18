@@ -29,6 +29,7 @@ from attrtables import AttributeValueTables
 from prenacs import scripts_helpers,\
                     AttributeDefinitionsManager,\
                     AttributeDefinition
+from prenacs.database import DEFAULT_AVT_PREFIX
 
 def main(args):
   engine = create_engine(scripts_helpers.database.connection_string_from(args),
@@ -50,7 +51,7 @@ def validated(args):
        "<definition>": And(str, Use(open), Use(yaml.safe_load)),
        "--testmode":   Or(None, True, False),
        "--dbpfx":      Or(None, str)})
-  args["--dbpfx"] = args["--dbpfx"] or "prenacs_attribute_value_t"
+  args["--dbpfx"] = args["--dbpfx"] or DEFAULT_AVT_PREFIX
   return args
 
 

@@ -43,7 +43,7 @@ class BatchComputation():
   def _get_mod_function(self, filename, fun, verbose):
     if filename:
       pmod = multiplug.importer(filename, verbose=verbose,
-                                **plugins.IDPROC_PLUGIN_INTERFACE)
+                                **plugins_helper.IDPROC_PLUGIN_INTERFACE)
       return getattr(pmod, fun)
     else:
       return None

@@ -2,12 +2,9 @@
 # (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
 #
 
-from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Sequence, Column, Integer, Float, String, DateTime,\
-                       Boolean, Text, Enum
+from sqlalchemy import Column, String, Text
 from sqlalchemy_repr import PrettyRepresentableBase
-from sqlalchemy.dialects.mysql import DOUBLE
 
 Base = declarative_base(cls=PrettyRepresentableBase)
 

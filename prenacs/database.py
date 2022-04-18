@@ -5,6 +5,8 @@ from prenacs.dbschema.attribute_definition import AttributeDefinition
 from prenacs.dbschema.plugin_description import PluginDescription
 from prenacs.dbschema.computation_report import ComputationReport
 
+DEFAULT_AVT_PREFIX = "prenacs_attribute_value_t"
+
 def create(connection):
   AttributeDefinition.metadata.create_all(connection)
   PluginDescription.metadata.create_all(connection)
