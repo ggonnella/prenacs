@@ -10,6 +10,14 @@ import tqdm
 from concurrent.futures import as_completed, ProcessPoolExecutor
 import multiplug
 
+plugin=None
+
+class EntityProcessor():
+  @staticmethod
+  def run(input_id, params):
+    global plugin
+    return plugin.compute(input_id, **params)
+
 class BatchComputation():
   def __init__(self, plugin, verbose=False):
     """
@@ -207,9 +215,6 @@ class BatchComputation():
     if self.plugin.initialize is not None:
       self.params["state"] = self.plugin.initialize()
 
-  def _unit_processor(self, input_id):
-    return self.plugin.compute(input_id, **self.params)
-
   def _on_failure(self, output_id, exc):
     self.outfile.flush()
     self.logfile.flush()
@@ -242,10 +247,14 @@ class BatchComputation():
     self.computed = True
 
   def _run_in_parallel(self, verbose):
+    global plugin
+    plugin = self.plugin
+    entity_processor = EntityProcessor()
     if verbose:
       sys.stderr.write("# Computation will be in parallel (multiprocess)\n")
     with ProcessPoolExecutor() as executor:
-      futures_map = {executor.submit(self._unit_processor, unit_ids[0]):
+      futures_map = {executor.submit(entity_processor.run,
+                                     unit_ids[0], self.params):
                      unit_ids[1] for unit_ids in self.all_ids}
       for future in tqdm.tqdm(as_completed(futures_map), total=len(futures_map),
                               desc=self.desc):
@@ -257,6 +266,7 @@ class BatchComputation():
           raise(exc)
         else:
           self._on_success(output_id, results, logs)
+    plugin = None
 
   def _run_serially(self, verbose):
     if verbose:
