@@ -4,6 +4,9 @@
 from sqlalchemy import select
 from sqlalchemy.schema import MetaData
 from pathlib import Path
+import yaml
+import getpass
+import socket
 import uuid
 import os
 
@@ -143,3 +146,44 @@ def check_values_after_run(n, connection):
     for accession in ['A1','A2','A3','A4']:
       check_g3_t2(r[2][accession], n)
       check_g3_t3(r[3][accession], n)
+
+def check_results(outfilename, expectedfilename, basename=False):
+  results = {}
+  expected = {}
+  with open(expectedfilename) as f:
+    for line in f:
+      elems = line.rstrip().split("\t")
+      key = elems.pop(0)
+      expected[key] = elems
+  with open(outfilename) as f:
+    for line in f:
+      elems = line.rstrip().split("\t")
+      entity_id = elems.pop(0)
+      if basename:
+        entity_id = os.path.basename(entity_id)
+      results[entity_id] = elems
+  assert(results == expected)
+
+def check_file_content(filename, expected):
+  with open(filename) as f:
+    assert(f.read() == expected)
+
+def check_empty_file(filename):
+  check_file_content(filename, "")
+
+def check_report(reportfilename,
+                 plugin_id, plugin_version, n_units, comp_status, reason=None,
+                 user_id=getpass.getuser(), system_id=socket.gethostname(),
+                 params={}):
+  with open(reportfilename) as f:
+    report = yaml.safe_load(f)
+  assert(report["plugin_id"] == plugin_id)
+  assert(report["plugin_version"] == plugin_version)
+  assert(report["n_units"] == n_units)
+  assert(report["comp_status"] == comp_status)
+  report_params = yaml.safe_load(report["parameters"])
+  assert(report_params == params)
+  assert(report["user_id"] == user_id)
+  assert(report["system_id"] == system_id)
+  assert(report["reason"] == reason)
+

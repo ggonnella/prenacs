@@ -56,8 +56,8 @@ class BatchComputation():
     else:
       return None
 
-  def _compute_ids(self, unit_name, is_filename, idproc):
-    identifier = idproc(unit_name) if idproc else unit_name
+  def _compute_ids(self, unit_name, is_filename, idsproc):
+    identifier = idsproc(unit_name) if idsproc else unit_name
     return (unit_name if is_filename else identifier), identifier
 
   def _input_units(self, globpattern, idsfile, idscol):
@@ -68,12 +68,12 @@ class BatchComputation():
         return [line.rstrip().split("\t")[idscol-1] for line in f]
 
   def _compute_all_ids(self, globpattern, idsfile, idscol,
-                       idproc, skip, verbose):
+                       idsproc, skip, verbose):
     if verbose:
       sys.stderr.write("# compute input and output IDs...")
     result = []
     for unit_name in self._input_units(globpattern, idsfile, idscol):
-      input_id, output_id = self._compute_ids(unit_name, globpattern, idproc)
+      input_id, output_id = self._compute_ids(unit_name, globpattern, idsproc)
       if output_id in skip:
         skip.remove(output_id)
       else:
@@ -83,13 +83,13 @@ class BatchComputation():
     return result
 
   def _select_input(self, globpattern=None, idsfile=None, idscol=None,
-                  idproc_module=None, skip=None, verbose=False):
-    idproc = self._get_mod_function(idproc_module, "compute_id", verbose)
+                  idsproc_module=None, skip=None, verbose=False):
+    idsproc = self._get_mod_function(idsproc_module, "compute_id", verbose)
     skip = self._compute_skip_set(skip, verbose)
     self.all_ids = self._compute_all_ids(globpattern, idsfile, idscol,
-                                         idproc, skip, verbose)
+                                         idsproc, skip, verbose)
 
-  def input_from_globpattern(self, globpattern, idproc_module=None,
+  def input_from_globpattern(self, globpattern, idsproc_module=None,
                              skip=None, verbose=False):
     """
     Select the computation input using a glob pattern.
@@ -101,7 +101,7 @@ class BatchComputation():
 
     # Output IDs
 
-    If a idproc_module is specified, the ``compute_id`` function of
+    If a idsproc_module is specified, the ``compute_id`` function of
     the module is used to compute the output ID.
     Otherwise the filename is used also as the output ID.
 
@@ -115,9 +115,9 @@ class BatchComputation():
     - contain one output ID per line, or
     - be a tab-separated file with the output ID in the first column.
     """
-    self._select_input(globpattern, None, None, idproc_module, skip, verbose)
+    self._select_input(globpattern, None, None, idsproc_module, skip, verbose)
 
-  def input_from_idsfile(self, idsfilename, idscol, idproc_module=None,
+  def input_from_idsfile(self, idsfilename, idscol=1, idsproc_module=None,
                          skip=None, verbose=False):
     """
     Select the computation input using a tab-separated file.
@@ -129,7 +129,7 @@ class BatchComputation():
     ``idscol`` (1-based column number) of the tab-separated file
     ``idsfilename``.
 
-    If a idproc_module is specified, the ``compute_id`` function of
+    If a idsproc_module is specified, the ``compute_id`` function of
     the module is used to compute the IDs from the column values.
     Otherwise the IDs are the column values themselves.
 
@@ -147,7 +147,9 @@ class BatchComputation():
     - contain one ID per line, or
     - be a tab-separated file with the ID in the first column.
     """
-    self._select_input(None, idsfilename, idscol, idproc_module, skip, verbose)
+    if idscol < 1:
+      raise ValueError("idscol must be a positive integer")
+    self._select_input(None, idsfilename, idscol, idsproc_module, skip, verbose)
 
   def set_output(self, outfilename = None, logfilename = None):
     self.outfile = open(outfilename, "a") if outfilename else sys.stdout

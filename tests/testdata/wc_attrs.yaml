@@ -1,0 +1,9 @@
+lines:
+  datatype: Integer
+  computation_group: wc
+words:
+  datatype: Integer
+  computation_group: wc
+chars:
+  datatype: Integer
+  computation_group: wc
