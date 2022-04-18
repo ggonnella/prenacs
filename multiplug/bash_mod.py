@@ -53,8 +53,6 @@ def _wrap_function(filename, funcname):
     kwargs_str=" ".join([f"{k}={v}" for k, v in kwargs.items()])
     retval = str(sh.bash("-c",
       f". {filename}; {funcname} {args_str} {kwargs_str}", _err=sys.stderr))
-    if len(retval) > 0 and retval[-1] == "\n":
-      retval = retval[:-1]
     has_newlines = "\n" in retval
     has_tabs = "\t" in retval
     if has_newlines and has_tabs:
