@@ -5,3 +5,4 @@ schema
 attrtables==1.1.1
 multiplug==1.1
 snacli==1.1
+loguru
