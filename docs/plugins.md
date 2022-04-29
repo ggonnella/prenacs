@@ -75,22 +75,58 @@ Optional: (string, max len 4096)
  - `REQ_HARDWARE`:   required hardware resources (memory, GPUs...)
  - `ADVICE`:         when should this method used instead of others
 
-### Shared resources for batch computations
+### Common resources for batch computations
 
-If a plugin needs shared resources for the computation of the same batch,
-it can use a `state` variable.
+Sometimes common resources are needed by multiple instances of a batch
+computation For example, it could be necessary to parse data files, to load
+some data into memory, or to initialize a connection to a database. Or some
+statistics could be collected during the computation and output at the end.
 
-In this case the plugin has the following interface:
+The convention in Prenacs is that such resources are passed around (if they
+exist) as a variable called ``state``. Due to the dynamic nature of Python
+variables, this can be a single resource or a container (e.g. a dictionary)
+to access multiple heterogenous resources.
 
- - `initialize(**kwargs) -> state`: function which initializes the resources;
-   called once only, at the beginning of the batch computation;
-   The function takes optional kwargs; these are passed as batch computation
-   parameters, under the key `state`.
- - `compute(entity, state=None, **kwargs) -> (results, logs)`:
-   the compute function in this case gets the state as a mandatory
-   keyword argument; it is allowed to change the content of state
- - `finalize(state)`: optional, if needed for closing/destroying/freeing
-   the resources of the state; called once, after the batch computation
+#### Creating common resources
+
+There are different ways to create resources which are accessed by all
+instances of the batch computation.
+
+First, the (initial) value of the ``state`` variable can be passed as one of the
+parameters (called ``state``) of the batch computation.
+
+Second, an initialization function can be implemented, with the signature
+``initialize(**kwargs)``. If this is provided, the function is called before the
+first instance of the batch computation. The batch computation parameters are
+passed to it as keyword arguments. The return value of the ``initialize``
+function is passed to the ``compute`` function as a keyword argument
+called ``state``.
+
+Third, these two approaches can be combined: i.e. a value for a ``state``
+variable can be specified in the batch computation parameters. If an
+``initialize`` function is provided, this reads the ``state`` variable, along
+with any other parameter. The original value of ``state``
+is then overwritten with the return value of the ``initialize`` function
+and can be accessed by the ``compute`` functions.
+
+#### Accessing common resources
+
+The common resources are accessed by the plugins ``compute`` function
+using a keyword parameter called ``state``. Thus if common resources are needed,
+the function will take the signature: ``compute(entity, state=None, **kwargs)``.
+
+While accessing the common information (in particular when this is not
+read-only), it should be considered, that the computation can be started in
+parallel (this is the default mode in the prenacs-batch-compute script).
+
+#### Finalizing common resources
+
+In some cases, it is necessary to do finalization operations at the end of the
+batch computation - e.g. close some files or connections, or write some
+information, collected during the computation.
+In such cases a ``finalize(state)`` function can be implemented in the plugin.
+It takes the final value of the ``state`` variable, and it is executed
+after the last instance of ``compute``.
 
 ## Non-Python plugins
 
