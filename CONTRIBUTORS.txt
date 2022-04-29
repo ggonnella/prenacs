@@ -1,1 +1,2 @@
 - Giorgio Gonnella (project founder, maintainer)
+- Ozan Kambertay (testing, patches/suggestions)
