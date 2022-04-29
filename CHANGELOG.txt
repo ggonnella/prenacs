@@ -1,3 +1,7 @@
+=== 1.0.2 ===
+- fixes to package installation (a script was missing)
+- improved the documentation
+
 === 1.0.1 ===
 - fix packaging (subdirectory dbschema was missing)
 - fix requirements
