@@ -7,3 +7,6 @@ multiplug==1.1
 snacli==1.1
 loguru
 mysqlclient
+docopt
+sh
+nimporter==1.1.0
