@@ -1,3 +1,6 @@
+=== 1.0.3 ===
+- warning instead of error if input list is empty
+
 === 1.0.2 ===
 - fixes to package installation (a script was missing)
 - improved the documentation
