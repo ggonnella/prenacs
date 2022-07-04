@@ -244,7 +244,8 @@ class BatchComputation():
     Set parallel to False to run the computation serially.
     """
     if not self.all_ids:
-      raise ValueError("Input was not selected")
+      if verbose:
+        sys.stderr.write("# Warning: no computation, input list is empty\n")
     if not self.report:
       self._default_computation_setup()
     if parallel:
