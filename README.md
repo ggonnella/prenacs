@@ -5,7 +5,7 @@ values for sets of entities, and to store the computation results in a
 database, alongside metadata which allows to track the data provenance.
 
 The name is an acronym for
-"PRovenance-tracking ENtity Attrtibute Computation and Storage system".
+"PRovenance-tracking ENtity Attribute Computation and Storage system".
 
 ## Key concepts
 
