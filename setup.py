@@ -9,11 +9,25 @@ if not sys.version_info[0] == 3:
   sys.exit("Sorry, only Python 3 is supported")
 
 setup(name='prenacs',
-      version='1.0.3',
+      version='1.1',
       description='PRovenance-tracking ENtity "+\
                   "Attribute batch Computation and database Storage system',
       long_description=readme(),
       long_description_content_type="text/markdown",
+      install_requires=[
+        "sqlalchemy",
+        "sqlalchemy_repr",
+        "tqdm",
+        "schema",
+        "attrtables==1.1.1",
+        "multiplug==1.1",
+        "snacli==1.1",
+        "loguru",
+        "mysqlclient",
+        "docopt",
+        "sh",
+        "nimporter==1.1.0",
+      ],
       url='https://github.com/ggonnella/prenacs',
       keywords="batch computing, database, data provenance",
       author='Giorgio Gonnella',
