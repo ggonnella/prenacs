@@ -12,7 +12,7 @@ if not sys.version_info[0] == 3:
   sys.exit("Sorry, only Python 3 is supported")
 
 setup(name='snacli',
-      version='1.1',
+      version='1.2',
       description='Simplify writing dual use scripts for CLI and Snakemake',
       long_description=readme(),
       long_description_content_type="text/markdown",
@@ -38,5 +38,6 @@ setup(name='snacli',
       zip_safe=False,
       test_suite="pytest",
       include_package_data=True,
+      install_requires=["docopt", "snakemake"],
       tests_require=['pytest', 'pytest-console-scripts'],
     )
