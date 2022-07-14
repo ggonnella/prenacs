@@ -39,4 +39,6 @@ setup(name='multiplug',
       test_suite="pytest",
       include_package_data=True,
       tests_require=['pytest', 'pytest-console-scripts'],
+      install_requires=['sh', 'nimporter==1.1.0', 'schema',
+                        'docopt', 'maturin==0.12.11'],
     )
