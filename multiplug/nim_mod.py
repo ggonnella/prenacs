@@ -11,6 +11,7 @@ import sys
 import importlib
 from pathlib import Path
 import nimporter
+import platform
 import os
 from contextlib import contextmanager
 from multiplug.plugin_api import enforce_plugin_api
@@ -32,6 +33,13 @@ def nim(filename, verbose=False, req_const=[], opt_const=[],
   """
   modulename = Path(filename).stem
   parent = Path(filename).parent
+  osx = platform.uname().machine == "arm64"
+  if osx:
+    cfgfile = str(filename)+".cfg"
+    with open(cfgfile, "w") as f:
+      f.write("--passC:\"-arch arm64 -flto\"\n")
+      f.write("--passL:\"-arch arm64 -flto\"\n")
+      f.write("--app:lib\n")
   m = nimporter.Nimporter.import_nim_module(modulename, [parent])
   info = [f"# nim module {modulename} imported from file {filename}\n"]
   if len(const_pfx) > 0:
