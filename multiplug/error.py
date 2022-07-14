@@ -9,6 +9,10 @@ class MultiplugError(Exception):
   """parent class for package-specific errors"""
   pass
 
+class ExtensionCompilationError(MultiplugError):
+  """raised when something goes wrong during extensions compilation"""
+  pass
+
 class InterfaceRequirementError(MultiplugError):
   """raised when a requirement in api_config is not met"""
   pass

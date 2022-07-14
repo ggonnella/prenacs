@@ -13,6 +13,8 @@ from pathlib import Path
 import os
 from contextlib import contextmanager
 from multiplug.plugin_api import enforce_plugin_api
+from multiplug.error import ExtensionCompilationError
+from maturin import import_hook
 
 RUST_CONST_CLS = "Constants"
 
@@ -103,14 +105,17 @@ def rust(filename, verbose=False, req_const=[], opt_const=[],
   "target" to .gitignore.
   """
   workingdir = Path(filename).parent
+  os.chdir(workingdir)
   modulename = Path(filename).stem
-  with _cargo_for(filename) as cargo:
-    sh.maturin("build", release=True, m=cargo)
-  libfilename = workingdir/f"{modulename}.so"
-  sh.ln(f"target/release/lib{modulename}.so", libfilename, s=True, f=True)
-  spec = importlib.util.spec_from_file_location(modulename, libfilename)
-  m = importlib.util.module_from_spec(spec)
-  spec.loader.exec_module(m)
+  try:
+    loader = import_hook.Loader(modulename)
+    m = loader.load_module(modulename)
+  except ModuleNotFoundError:
+    with _cargo_for(filename) as cargo:
+      importer = import_hook.install(release=True)
+      spec = importer.find_spec(modulename, workingdir/filename)
+      m = importlib.util.module_from_spec(spec)
+  #spec.loader.exec_module(m)
   info = [f"# rust module {modulename} imported from file {filename}\n"]
   if len(const_cls) > 0:
     _import_constants(m, const_cls)
