@@ -22,6 +22,7 @@ def test_py(examples, testplugins, testdata, script_runner):
   assert ret.stdout.rstrip() == "\t".join([input_fn,
     "([800, 0.41], [])"])
 
+@pytest.mark.script_launch_mode('subprocess')
 def test_rs(examples, testplugins, testdata, script_runner):
   script_fn = examples("batch_compute.py")
   plugin_fn = examples("fas_stats_rs.rs")
@@ -86,10 +87,10 @@ def test_bash_retval_types(examples, testplugins, testdata, script_runner):
   script_fn = examples("batch_compute.py")
   input_fn = testdata("example.fas")
   expected_out = {
-      "nested":       input_fn,
+      "nested":       str([input_fn, '']),
       "string":       "-".join([input_fn,""]),
       "list_tab":     str([input_fn,""]),
-      "list_newline": str([input_fn,""]),
+      "list_newline": str([input_fn,"",""]),
     }
   for rt in ["nested", "string", "list_tab", "list_newline"]:
     plugin_fn = testplugins(f"sh_return_{rt}.sh")
