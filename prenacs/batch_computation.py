@@ -9,14 +9,16 @@ from prenacs.report import Report
 import tqdm
 from concurrent.futures import as_completed, ProcessPoolExecutor
 import multiplug
-
-plugin=None
+import dill
 
 class EntityProcessor():
-  @staticmethod
-  def run(input_id, params):
-    global plugin
-    return plugin.compute(input_id, **params)
+
+  def __init__(self, dumped_plugin_compute):
+    self.dumped_plugin_compute = dumped_plugin_compute
+
+  def run(self, input_id, params):
+    plugin_compute = dill.loads(self.dumped_plugin_compute)
+    return plugin_compute(input_id, **params)
 
 class BatchComputation():
   def __init__(self, plugin, verbose=False):
@@ -255,9 +257,7 @@ class BatchComputation():
     self.computed = True
 
   def _run_in_parallel(self, verbose):
-    global plugin
-    plugin = self.plugin
-    entity_processor = EntityProcessor()
+    entity_processor = EntityProcessor(dill.dumps(self.plugin.compute))
     if verbose:
       sys.stderr.write("# Computation will be in parallel (multiprocess)\n")
     with ProcessPoolExecutor() as executor:
@@ -274,7 +274,6 @@ class BatchComputation():
           raise(exc)
         else:
           self._on_success(output_id, results, logs)
-    plugin = None
 
   def _run_serially(self, verbose):
     if verbose:
