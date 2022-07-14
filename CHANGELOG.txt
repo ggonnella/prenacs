@@ -1,3 +1,6 @@
+=== 1.2 ===
+- use dill package to pickle compute function
+
 === 1.1 ===
 - fix package requirements system
 

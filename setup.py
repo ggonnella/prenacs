@@ -9,7 +9,7 @@ if not sys.version_info[0] == 3:
   sys.exit("Sorry, only Python 3 is supported")
 
 setup(name='prenacs',
-      version='1.1',
+      version='1.2',
       description='PRovenance-tracking ENtity "+\
                   "Attribute batch Computation and database Storage system',
       long_description=readme(),
