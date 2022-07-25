@@ -6,8 +6,7 @@ Computes something on the array
 At the moment it just displays the content of the files
 
 Usage:
-  fake_array_job_elements_executor.py <plugin_file> <parameters_file> <input_list_file>
-
+  fake_array_job_elements_executor.py <plugin_file> <parameters_file> <input_list_file> <task_id>
 """
 
 import docopt
@@ -23,3 +22,8 @@ for key in ["plugin_file", "parameters_file",
   print()
   with open(filename) as file:
     print(file.read())
+  print()
+
+print("="*50)
+print()
+print("task_id: {}".format(args["<task_id>"]))
