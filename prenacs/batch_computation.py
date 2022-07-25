@@ -256,6 +256,52 @@ class BatchComputation():
       self._run_serially(verbose)
     self.computed = True
 
+  # Implemented separately
+  # [A]
+  # - array_job_element_executor.py
+  #   - load the parameters from file
+  #   - load the plugin from file
+  #   - load the input_list from file
+  #   - run the computation using the plugin and one of the elements of the
+  #   input list
+  #   - writes the results to a JSON file (input ID/results/logs)
+  #
+  # [B] shell script "submit_array_job.sh"
+  #  runs array_job_element_executor.py passing the filenames (parameters,
+  #  plugin, input_list)
+
+  def _run_on_cluster(self, verbose):
+    _dump_information_to_file()
+    _call_job_submitter()
+    _queue_polling_and_results_collecting()
+
+    import sh
+
+    sh.sbatch("submit_array_job.sh", )
+    #
+    # (1)
+    #
+    # - dump to file the parameters
+    # - dump to file the input_list (from which then for each element of the array
+    #                        ONE ID/filename will be taken)
+    #
+    # (2)
+    # run submit_array_job.sh passing as arguments:
+    #     - plugin filename
+    #     - dumped parameters filename
+    #     - dumped input_list filename
+    #     [submit_array_job.sh passes everything to array_job_element_executor.py]
+    #
+    # (3)
+    #
+    # run the:
+    #   - sacct JOBID (after completion, check if failed or success)
+    #   - squeue | grep
+    # for every completed elements of the array
+    #   - load the JSON file with results/logs
+    #     self._on_success(output_id, results, logs)
+
+
   def _run_in_parallel(self, verbose):
     entity_processor = EntityProcessor(dill.dumps(self.plugin.compute))
     if verbose:
