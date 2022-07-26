@@ -9,6 +9,7 @@ from prenacs.report import Report
 import tqdm
 from concurrent.futures import as_completed, ProcessPoolExecutor
 import multiplug
+import tempfile
 import dill
 
 class EntityProcessor():
@@ -258,20 +259,28 @@ class BatchComputation():
 
   # Implemented separately
   # [A]
-  # - array_job_element_executor.py
+  # - prenacs-array-task
   #   - load the parameters from file
   #   - load the plugin from file
   #   - load the input_list from file
   #   - run the computation using the plugin and one of the elements of the
   #   input list
-  #   - writes the results to a JSON file (input ID/results/logs)
+  #   - writes the results to a file (input ID/results/logs)
   #
   # [B] shell script "submit_array_job.sh"
-  #  runs array_job_element_executor.py passing the filenames (parameters,
-  #  plugin, input_list)
+  #  runs prenacs-array-task passing the filenames (parameters,
+  #  plugin, input_list), the task ID and the output directory
 
-  def _run_on_cluster(self, verbose):
-    _dump_information_to_file()
+  def _run_on_slurm_cluster(self, verbose):
+    if verbose:
+      sys.stderr.write("# Computation will be on a SLURM cluster\n")
+    with tempfile.NamedTemporaryFile(delete=False, mode="wb") as params_f:
+      dill.dump(self.params, params_f)
+    with tempfile.NamedTemporaryFile(delete=False, mode="wb") as input_list_f:
+      dill.dump([i[0] for i in self.all_ids], input_list_f)
+
+    sh.
+
     _call_job_submitter()
     _queue_polling_and_results_collecting()
 
@@ -280,10 +289,6 @@ class BatchComputation():
     sh.sbatch("submit_array_job.sh", )
     #
     # (1)
-    #
-    # - dump to file the parameters
-    # - dump to file the input_list (from which then for each element of the array
-    #                        ONE ID/filename will be taken)
     #
     # (2)
     # run submit_array_job.sh passing as arguments:
