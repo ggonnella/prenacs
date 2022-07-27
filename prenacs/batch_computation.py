@@ -1,15 +1,19 @@
 #
 # (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
 #
+from sqlite3 import ProgrammingError
 import sys
 from pathlib import Path
 from glob import glob
+from time import sleep
 from prenacs import plugins_helper, formatting_helper
 from prenacs.report import Report
 import tqdm
 from concurrent.futures import as_completed, ProcessPoolExecutor
 import multiplug
+import tempfile
 import dill
+import sh
 
 class EntityProcessor():
 
@@ -258,26 +262,69 @@ class BatchComputation():
 
   # Implemented separately
   # [A]
-  # - array_job_element_executor.py
+  # - prenacs-array-task
   #   - load the parameters from file
   #   - load the plugin from file
   #   - load the input_list from file
   #   - run the computation using the plugin and one of the elements of the
   #   input list
-  #   - writes the results to a JSON file (input ID/results/logs)
+  #   - writes the results to a file (input ID/results/logs)
   #
   # [B] shell script "submit_array_job.sh"
-  #  runs array_job_element_executor.py passing the filenames (parameters,
-  #  plugin, input_list)
+   #  runs prenacs-array-task passing the filenames (parameters,
+   #  plugin, input_list), the task ID and the output directory
 
-  def _run_on_cluster(self, verbose):
-    _dump_information_to_file()
-    _call_job_submitter()
-    _queue_polling_and_results_collecting()
+  def _run_on_slurm_cluster(self, verbose):
+    if verbose:
+      sys.stderr.write("# Computation will be on a SLURM cluster\n")
+    with tempfile.NamedTemporaryFile(delete=False, mode="wb") as params_f:
+      dill.dump(self.params, params_f)
+    with tempfile.NamedTemporaryFile(delete=False, mode="wb") as input_list_f:
+      dill.dump([i[0] for i in self.all_ids], input_list_f)
+    
+    # Run the sbatch script with given parameters and get the job id
+    plugin_f = self.plugin.__path__
+    array_len = len(self.all_ids)
+    output_dir = "temp" # Tentatively describe an output directory for testing
+    try:
+      sbatch_out = sh.sbatch("--parsable", "-a", "0-{}".format(array_len - 1), "prenacs/submit_array_job.sh",
+                              "{}".format(plugin_f),
+                              "{}".format(params_f),
+                              "{}".format(input_list_f),
+                              "{}".format(output_dir))
+    except sh.ErrorReturnCode:
+      raise ValueError("Job submission is unsuccessful!\n")
+    job_id = [int(i) for i in str(sbatch_out).split(";") if i.isdigit()][0]
 
-    import sh
+    # Report the running and completed jobs    
+    n_completed_jobs = 0
+    progress_bar = tqdm.tqdm(total=array_len, desc=self.desc)
+    while int(sh.wc(sh.squeue("--jobs", "{}".format(job_id)), "-l")) > 1:
+      n_running_jobs = int(sh.grep(sh.grep(_get_job_stats(job_id), "RUNNING"), "-oE", "[0-9]+"))
+      n_completed_jobs = int(sh.grep(sh.grep(_get_job_stats(job_id), "COMPLETED"), "-oE", "[0-9]+"))
+      progress_bar.n = n_completed_jobs
+      progress_bar.refresh()
+      sys.stderr.write("# {} out of {} jobs are RUNNING at the moment\n".format(n_running_jobs, array_len))
+      sys.stderr.write("# {} out of {} jobs have been COMPLETED\n".format(n_completed_jobs, array_len))  
+      sleep(15)
+    progress_bar.close()
+    
+    # Check if all jobs have been completed
+    if n_completed_jobs == array_len:
+      sys.stderr.write("# All jobs have been completed successfully!\n")
+    else:
+      sys.stderr.write("# {} jobs have failed!\n".format(array_len-n_completed_jobs))
 
-    sh.sbatch("submit_array_job.sh", )
+    # Find the status of each job with the command below:
+    # sacct -n -X -j 885881 -o state%20 | sort | uniq -c
+    def _get_job_stats(jobid): 
+      sh.uniq(sh.sort(sh.sacct("-n", "-X", "-j", "{}".format(jobid), "-o", "state%20")), "-c")
+ 
+
+
+    # _call_job_submitter()
+    # _queue_polling_and_results_collecting()
+ 
     #
     # (1)
     #
@@ -291,7 +338,6 @@ class BatchComputation():
     #     - dumped parameters filename
     #     - dumped input_list filename
     #     [submit_array_job.sh passes everything to array_job_element_executor.py]
-    #
     # (3)
     #
     # run the:
@@ -300,6 +346,9 @@ class BatchComputation():
     # for every completed elements of the array
     #   - load the JSON file with results/logs
     #     self._on_success(output_id, results, logs)
+
+  
+
 
 
   def _run_in_parallel(self, verbose):
