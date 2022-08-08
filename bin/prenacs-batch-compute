@@ -58,7 +58,8 @@ Options:
                     results (unless a different file is specified with --skip)
   --log, -l FNAME   write logs to the given file (default: stderr);
                     if the file exists, the output is appended
-  --serial          run the computation serially (default: use multiprocessing)
+  --mode MODE       select the computation mode (default: parallel)
+                    modes: serial, parallel (uses multiprocessing), slurm
 {report_opts}
 {common}
 """
@@ -81,7 +82,7 @@ def main(args):
   batch_computation.setup_computation(args["--params"], args["--report"],
       args["--user"], args["--system"], args["--reason"], args["--verbose"])
   try:
-    batch_computation.run(not args["--serial"], args["--verbose"])
+    batch_computation.run(args["--mode"], args["--verbose"])
   except Exception as e:
     print("# The computation failed", file=sys.stderr)
     print(f"# Error message:\n  {e}", file=sys.stderr)
@@ -106,7 +107,7 @@ with snacli.args(scripts_helpers.report.SNAKE_ARGS,
                  input=["<plugin>", "--idsproc"],
                  log=["--out", "--log"],
                  params=["<globpattern>", "<idsfile>", "<col>", "--verbose",
-                         "--skip", "--serial"],
+                         "--skip", "--mode"],
                  docvars={"common": scripts_helpers.common.ARGS_DOC,
                           "report_opts": scripts_helpers.report.ARGS_DOC},
                  version="1.0") as args:

@@ -241,25 +241,31 @@ class BatchComputation():
         self.logfile.write(f"{output_id}\t{element}\n")
     self.report.step()
 
-  def run(self, parallel=True, verbose=False, slurm=False):
+  def run(self, mode="parallel", verbose=False):
     """
     Run the computation.
 
     By default, the computation is run in parallel
     (using a multiprocessing.Pool).
-    Set parallel to False to run the computation serially.
+
+    Other modes are:
+    - serial: run the computation serially
+    - slurm: run on a computer cluster managed by Slurm
     """
     if not self.all_ids:
       if verbose:
         sys.stderr.write("# Warning: no computation, input list is empty\n")
     if not self.report:
       self._default_computation_setup()
-    if slurm:
+    if mode == "slurm":
       self._run_on_slurm_cluster(verbose)
-    elif parallel:
+    elif "parallel":
      self._run_in_parallel(verbose)
-    else:
+    elif "serial":
      self._run_serially(verbose)
+    else:
+      raise RuntimeError(f"The computation mode '{mode}' is unknown\n"+\
+                        "It must be one of: parallel, serial, slurm.")
     self.computed = True
 
   def _run_on_slurm_cluster(self, verbose):

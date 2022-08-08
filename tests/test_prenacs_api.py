@@ -53,11 +53,11 @@ def outfiles(bc, **kwargs):
   os.unlink(reportfile.name)
 
 def test_prenacs_api_batch_computing_files():
-  for parallel in [True, False]:
+  for mode in ["serial", "parallel"]:
     bc = BatchComputation(str(TESTDATA/"wc_from_filename_plugin.sh"))
     bc.input_from_globpattern(str(TESTDATA/"*.data"), verbose=ECHO)
     with outfiles(bc) as (outfilename, logfilename, reportfilename):
-      bc.run(verbose=ECHO, parallel=parallel)
+      bc.run(mode=mode, verbose=ECHO)
       bc.finalize()
       check_report(reportfilename, "wc", "1.0", 9, "completed")
       check_results(outfilename, str(TESTDATA/"wc_expected_wfilename.tsv"),
@@ -65,13 +65,13 @@ def test_prenacs_api_batch_computing_files():
       check_empty_file(logfilename)
 
 def test_prenacs_api_batch_computing_ids():
-  for parallel in [True, False]:
+  for mode in ["serial", "parallel"]:
     bc = BatchComputation(str(TESTDATA/"wc_from_id_plugin.sh"))
     bc.input_from_idsfile(str(TESTDATA/"ids.tsv"), verbose=ECHO)
     params = {"testdatadir": str(TESTDATA)}
     with outfiles(bc, params=params, system="testsystem") as \
         (outfilename, logfilename, reportfilename):
-      bc.run(verbose=ECHO, parallel=parallel)
+      bc.run(mode=mode, verbose=ECHO)
       bc.finalize()
       check_report(reportfilename, "wc", "1.0", 9, "completed", params=params,
                    system_id="testsystem")
@@ -79,13 +79,13 @@ def test_prenacs_api_batch_computing_ids():
       check_empty_file(logfilename)
 
 def test_prenacs_api_batch_computing_ids_with_error_in_one_unit():
-  for parallel in [True, False]:
+  for mode in ["serial", "parallel"]:
     bc = BatchComputation(str(TESTDATA/"wc_from_id_plugin.sh"))
     bc.input_from_idsfile(str(TESTDATA/"ids.tsv"), 2, verbose=ECHO)
     params = {"testdatadir": str(TESTDATA)}
     with outfiles(bc, params=params, user="testuser") as \
         (outfilename, logfilename, reportfilename):
-      bc.run(verbose=ECHO, parallel=parallel)
+      bc.run(mode=mode, verbose=ECHO)
       bc.finalize()
       check_report(reportfilename, "wc", "1.0", 9, "completed", params=params,
                    user_id="testuser")
@@ -94,14 +94,14 @@ def test_prenacs_api_batch_computing_ids_with_error_in_one_unit():
           f"0\t{TESTDATA}/input0.data does not exist\n")
 
 def test_prenacs_api_batch_computing_ids_with_proc():
-  for parallel in [True, False]:
+  for mode in ["serial", "parallel"]:
     bc = BatchComputation(str(TESTDATA/"wc_from_id_plugin.sh"))
     bc.input_from_idsfile(str(TESTDATA/"ids.tsv"), 2, verbose=ECHO,
                           idsproc_module=str(TESTDATA/"one_adder_idsproc.sh"))
     params = {"testdatadir": str(TESTDATA)}
     with outfiles(bc, params=params, reason="new_attributes") as \
         (outfilename, logfilename, reportfilename):
-      bc.run(verbose=ECHO, parallel=parallel)
+      bc.run(mode=mode, verbose=ECHO)
       bc.finalize()
       check_report(reportfilename, "wc", "1.0", 9, "completed", params=params,
                    reason="new_attributes")

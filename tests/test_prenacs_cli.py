@@ -51,7 +51,8 @@ def auto_args(parallel, verbose, params = None):
   args = ["--out", outfile.name, "--report", reportfile.name,
          "--log", logfile.name]
   if not parallel:
-    args.append("--serial")
+    args.append("--mode")
+    args.append("serial")
   if verbose:
     args.append("--verbose")
   if params:
