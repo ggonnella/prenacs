@@ -263,6 +263,7 @@ class BatchComputation():
 
   def _run_on_slurm_cluster(self, verbose):
     temp_dir = Path().absolute()/"tmp" # This should be determined by the user
+    temp_dir.mkdir(parents=True, exist_ok=True)
     if verbose:
       sys.stderr.write("# Computation will be on a SLURM cluster\n")
     with tempfile.NamedTemporaryFile(delete=False, mode="wb", dir=temp_dir) as params_f:
@@ -274,14 +275,15 @@ class BatchComputation():
     plugin_f = self.plugin.__file__  # Is there a better way to get the path?
     submit_f = Path(__file__).parent.absolute()/"submit_array_job.sh"
     array_len = len(self.all_ids)
-    output_dir = str(Path().absolute()/"out") # Tentatively describe an output directory for testing
+    output_dir = Path().absolute()/"out" # Tentatively describe an output directory for testing
+    output_dir.mkdir(parents=True, exist_ok=True)
     try:
       sbatch_out = sh.sbatch("--parsable", "-a", "0-{}".format(array_len-1),
                               str(submit_f),
                               str(plugin_f),
                               str(params_f.name),
                               str(input_list_f.name),
-                              output_dir)
+                              str(output_dir))
       job_id = [int(i) for i in str(sbatch_out).split(";") if i.strip().isdigit()][0]
     except sh.ErrorReturnCode:
       raise ValueError("Job submission is unsuccessful!\n")
