@@ -12,6 +12,7 @@ from concurrent.futures import as_completed, ProcessPoolExecutor
 import multiplug
 import tempfile
 import dill
+import os
 import sh
 
 class EntityProcessor():
@@ -41,7 +42,7 @@ class BatchComputation():
 
   def _compute_skip_set(self, skip_arg, verbose):
     skip = set()
-    if skip_arg:
+    if skip_arg and os.path.exists(skip_arg):
       if verbose:
         sys.stderr.write(f"# processing skip list... ({skip_arg})\n")
       with open(skip_arg) as f:
