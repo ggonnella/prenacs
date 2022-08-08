@@ -240,7 +240,7 @@ class BatchComputation():
         self.logfile.write(f"{output_id}\t{element}\n")
     self.report.step()
 
-  def run(self, parallel=True, verbose=False, slurm=True):
+  def run(self, parallel=True, verbose=False, slurm=False):
     """
     Run the computation.
 
