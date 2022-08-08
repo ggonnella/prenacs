@@ -155,7 +155,8 @@ using a plugin. This assumes that the attributes computed by the plugin
 have been added to the database, as explained in the previous section.
 By default the computation is run in parallel, using the
 ``mutliprocessing`` module. If a serial computation is desired,
-the ``--serial`` option can be used.
+the ``--mode serial`` option can be used. If desired, the computation
+can be run on a Slurm cluster (see below).
 
 The batch compute function must locate the entities on which the
 computation shall be run. The input entities can be provided as
@@ -190,6 +191,27 @@ The output is tabular (tab-separated). The first column contains the
 the entity IDs. The following columns contains the information
 messages returned by the plugin. Each entity attribute computation
 can generate zero, one or multiple lines.
+
+## Running on a Slurm cluster
+
+The computation can be run on a computer cluster managed by Slurm.
+For this to work the ``prenacs-batch-compute`` script must be called
+with the option ``--mode slurm``.
+
+TO BE POLISHED: (also: these options do not exist yet)
+
+The user must provide, using the option ``--slurm-submitter <PATH_TO_SCRIPT>``
+(TODO: maybe use a nicer name for this option)
+the path to a Bash script which is passed to ``sbatch``...
+An example is given in the library source code ``prenacs/NAME_FORGOTTEN.sh``.
+
+In these case, further options are available: ``--slurm-outdir``
+and ``--slurm-tmpdir`` are used, respectively, to set the directory
+where the output of the single tasks is stored, and the temporary
+directory used to store the temporary files necessary to pass information
+to the array job.
+
+ADD MORE DOCUMENTATION HERE...
 
 ### Input entities provided as a set of identifiers
 
