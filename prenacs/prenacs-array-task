@@ -6,7 +6,7 @@ passing the <task_id>-th line of the <input_list_file> file
 as input entity ID/filename
 
 Usage:
-  fake_array_job_elements_executor.py <plugin> <dumped_params> \
+  prenacs-array-task <plugin> <dumped_params> \
                                       <dumped_input_list> <task_id> \
                                       <output_dir>
 """

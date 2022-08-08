@@ -4,6 +4,7 @@
 import sys
 from pathlib import Path
 from glob import glob
+from time import sleep
 from prenacs import plugins_helper, formatting_helper
 from prenacs.report import Report
 import tqdm
@@ -11,6 +12,7 @@ from concurrent.futures import as_completed, ProcessPoolExecutor
 import multiplug
 import tempfile
 import dill
+import sh
 
 class EntityProcessor():
 
@@ -238,7 +240,7 @@ class BatchComputation():
         self.logfile.write(f"{output_id}\t{element}\n")
     self.report.step()
 
-  def run(self, parallel=True, verbose=False):
+  def run(self, parallel=True, verbose=False, slurm=True):
     """
     Run the computation.
 
@@ -251,61 +253,95 @@ class BatchComputation():
         sys.stderr.write("# Warning: no computation, input list is empty\n")
     if not self.report:
       self._default_computation_setup()
-    if parallel:
-      self._run_in_parallel(verbose)
+    if slurm:
+      self._run_on_slurm_cluster(verbose)
+    elif parallel:
+     self._run_in_parallel(verbose)
     else:
-      self._run_serially(verbose)
+     self._run_serially(verbose)
     self.computed = True
 
-  # Implemented separately
-  # [A]
-  # - prenacs-array-task
-  #   - load the parameters from file
-  #   - load the plugin from file
-  #   - load the input_list from file
-  #   - run the computation using the plugin and one of the elements of the
-  #   input list
-  #   - writes the results to a file (input ID/results/logs)
-  #
-  # [B] shell script "submit_array_job.sh"
-  #  runs prenacs-array-task passing the filenames (parameters,
-  #  plugin, input_list), the task ID and the output directory
-
   def _run_on_slurm_cluster(self, verbose):
+    temp_dir = Path().absolute()/"tmp" # This should be determined by the user
     if verbose:
       sys.stderr.write("# Computation will be on a SLURM cluster\n")
-    with tempfile.NamedTemporaryFile(delete=False, mode="wb") as params_f:
+    with tempfile.NamedTemporaryFile(delete=False, mode="wb", dir=temp_dir) as params_f:
       dill.dump(self.params, params_f)
-    with tempfile.NamedTemporaryFile(delete=False, mode="wb") as input_list_f:
+    with tempfile.NamedTemporaryFile(delete=False, mode="wb", dir=temp_dir) as input_list_f:
       dill.dump([i[0] for i in self.all_ids], input_list_f)
+    
+    # Run the sbatch script with given parameters and get the job id
+    plugin_f = self.plugin.__file__  # Is there a better way to get the path?
+    submit_f = Path(__file__).parent.absolute()/"submit_array_job.sh"
+    array_len = len(self.all_ids)
+    output_dir = str(Path().absolute()/"out") # Tentatively describe an output directory for testing
+    try:
+      sbatch_out = sh.sbatch("--parsable", "-a", "0-{}".format(array_len-1),
+                              str(submit_f),
+                              str(plugin_f),
+                              str(params_f.name),
+                              str(input_list_f.name),
+                              output_dir)
+      job_id = [int(i) for i in str(sbatch_out).split(";") if i.strip().isdigit()][0]
+    except sh.ErrorReturnCode:
+      raise ValueError("Job submission is unsuccessful!\n")
+    except Exception as exc:
+      raise(exc)
+    else:
+      sys.stderr.write("# Job submission is successful\n")
+      
+    # Get the job statistics with sacct command
+    def _get_stats(job_id):
+      stats_dict = {}
+      stats_out = str(sh.uniq(sh.sort(sh.sacct("-n", "-X", "-j", "{}".format(job_id), "-o", "state%20")), "-c")).split("\n")
+      for stat in stats_out:
+        s_pair = stat.split()
+        s_desc, s_int = None, None
+        if len(s_pair) == 2:
+          for p in s_pair:
+            if p.isdigit():
+             s_int = int(p)
+            else:
+              s_desc = p
+          if s_desc is not None and s_int is not None:
+            stats_dict[s_desc] = s_int
+          else:
+            sys.stderr.write("# Job status cannot be retrieved at the moment!\n")
+      if stats_dict:
+        for k in stats_dict:
+          sys.stderr.write("# {}: {}\n".format(k, stats_dict[k]))
+        if "COMPLETED" in stats_dict:
+          n_completed = stats_dict["COMPLETED"]
+          progress_bar.n = n_completed
+          progress_bar.refresh()
+      return stats_dict      
 
-    sh.
-
-    _call_job_submitter()
-    _queue_polling_and_results_collecting()
-
-    import sh
-
-    sh.sbatch("submit_array_job.sh", )
-    #
-    # (1)
-    #
-    # (2)
-    # run submit_array_job.sh passing as arguments:
-    #     - plugin filename
-    #     - dumped parameters filename
-    #     - dumped input_list filename
-    #     [submit_array_job.sh passes everything to array_job_element_executor.py]
-    #
-    # (3)
-    #
-    # run the:
-    #   - sacct JOBID (after completion, check if failed or success)
-    #   - squeue | grep
-    # for every completed elements of the array
-    #   - load the JSON file with results/logs
-    #     self._on_success(output_id, results, logs)
-
+    # Report the status of each job    
+    n_completed_jobs = 0
+    progress_bar = tqdm.tqdm(total=array_len)
+    while int(sh.wc(sh.squeue("--jobs", "{}".format(job_id)), "-l")) > 1:
+      sleep(5)
+      _get_stats(job_id)
+      sleep(15)
+    
+    # Check if all jobs have been completed
+    stats_dict = _get_stats(job_id)
+    n_completed = stats_dict.get("COMPLETED", 0)
+    if n_completed == array_len:
+      sys.stderr.write("# All jobs have been completed successfully!\n")
+    else:
+      sys.stderr.write("# {} jobs have failed!\n".format(array_len-n_completed))
+    progress_bar.close()
+    
+    # Go into the output folder and collect the results
+    for out_f in glob(f"{output_dir}/*"):
+      f_name = Path(out_f).stem
+      if f_name.isdigit():
+        f_id = int(f_name) 
+        output_id = self.all_ids[f_id][1]
+        with open(out_f, "rb") as f:
+          results, *logs = dill.load(f)
+          self._on_success(output_id, results, logs)
 
   def _run_in_parallel(self, verbose):
     entity_processor = EntityProcessor(dill.dumps(self.plugin.compute))

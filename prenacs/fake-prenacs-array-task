@@ -6,10 +6,11 @@ Computes something on the array
 At the moment it just displays the content of the files
 
 Usage:
-  fake_array_job_elements_executor.py <plugin_file> <parameters_file> <input_list_file> <task_id>
+  fake-prenacs-array-task <plugin_file> <parameters_file> <input_list_file> <task_id>
 """
 
 import docopt
+from time import sleep
 
 args = docopt.docopt(__doc__, version="0.1")
 for key in ["plugin_file", "parameters_file",
@@ -27,3 +28,4 @@ for key in ["plugin_file", "parameters_file",
 print("="*50)
 print()
 print("task_id: {}".format(args["<task_id>"]))
+sleep(60)
