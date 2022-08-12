@@ -46,20 +46,24 @@ Output:
   version, parameters, username, hostname, etc.
 
 Options:
-  --idsproc FNAME   Python/Nim/Rust module, providing compute_id(str)->str;
-                    allows to edit the IDs/filenames used for (1) results;
-                    (2) --skip option; (3) in "ids" mode only: input to the
-                    compute() function
-  --skip, -s FNAME  skip computations for which the ID is contained in this
-                    file (one ID per line, or TSV with IDs in first column)
-  --out, -o FNAME   output results to file (default: stdout);
-                    if the file exists, the output is appended
-                    and the file is used also for skipping previously computed
-                    results (unless a different file is specified with --skip)
-  --log, -l FNAME   write logs to the given file (default: stderr);
-                    if the file exists, the output is appended
-  --mode MODE       select the computation mode (default: parallel)
-                    modes: serial, parallel (uses multiprocessing), slurm
+  --idsproc FNAME         Python/Nim/Rust module, providing compute_id(str)->str;
+                          allows to edit the IDs/filenames used for (1) results;
+                          (2) --skip option; (3) in "ids" mode only: input to the
+                          compute() function
+  --skip, -s FNAME        skip computations for which the ID is contained in this
+                          file (one ID per line, or TSV with IDs in first column)
+  --out, -o FNAME         output results to file (default: stdout);
+                          if the file exists, the output is appended
+                          and the file is used also for skipping previously computed
+                          results (unless a different file is specified with --skip)
+  --log, -l FNAME         write logs to the given file (default: stderr);
+                          if the file exists, the output is appended
+  --mode MODE             select the computation mode (default: parallel)
+                          modes: serial, parallel (uses multiprocessing), slurm
+  --slurm-submitter FNAME define the path to the batch script which will be passed to sbatch     
+  --slurm-outdir DIRNAME  define the directory for the output of single tasks (default: current directory)
+  --slurm-tmpdir DIRNAME  define the directory for the temporary files 
+                          necessary to pass information to the array job (default: current directory)
 {report_opts}
 {common}
 """
@@ -78,6 +82,9 @@ def main(args):
   else:
     batch_computation.input_from_idsfile(args["<idsfile>"], args["<col>"],
         args["--idsproc"], args["--skip"], args["--verbose"])
+  if args["--mode"] == "slurm":
+    batch_computation.set_slurm_params(args["--slurm-submitter"],
+      args["--slurm-outdir"], args["--slurm-tmpdir"])
   batch_computation.set_output(args["--out"], args["--log"])
   batch_computation.setup_computation(args["--params"], args["--report"],
       args["--user"], args["--system"], args["--reason"], args["--verbose"])
@@ -98,7 +105,10 @@ def validated(args):
        "<plugin>": os.path.exists,
        "--out": Or(None, str),
        "--log": Or(None, str),
-       "--skip": Or(None, os.path.exists)})
+       "--skip": Or(None, os.path.exists),
+       "--slurm-submitter": os.path.exists,
+       "--slurm-outdir": Or(None, str),
+       "--slurm-tmpdir": Or(None, str)})
   if args["--skip"] is None and args["--out"]:
      args["--skip"] = args["--out"]
   return args
@@ -107,7 +117,7 @@ with snacli.args(scripts_helpers.report.SNAKE_ARGS,
                  input=["<plugin>", "--idsproc"],
                  log=["--out", "--log"],
                  params=["<globpattern>", "<idsfile>", "<col>", "--verbose",
-                         "--skip", "--mode"],
+                         "--skip", "--mode", "--slurm-outdir", "--slurm-tmpdir"],
                  docvars={"common": scripts_helpers.common.ARGS_DOC,
                           "report_opts": scripts_helpers.report.ARGS_DOC},
                  version="1.0") as args:

@@ -13,6 +13,7 @@ import multiplug
 import tempfile
 import dill
 import os
+import shutil
 import sh
 
 class EntityProcessor():
@@ -39,6 +40,8 @@ class BatchComputation():
     self.report = None
     self.params = {}
     self.computed = False
+    self.slurmoutdir = Path("prenacs_slurm_out")
+    self.slurmtmpdir = Path("prenacs_tmp")
 
   def _compute_skip_set(self, skip_arg, verbose):
     skip = set()
@@ -161,6 +164,13 @@ class BatchComputation():
     self.outfile = open(outfilename, "a") if outfilename else sys.stdout
     self.logfile = open(logfilename, "a") if logfilename else sys.stderr
 
+  def set_slurm_params(self, submitterfilename, outdirname = None, tmpdirname = None):
+    self.slurmsubmitter = Path(submitterfilename)
+    if outdirname: self.slurmoutdir = Path(outdirname) 
+    Path(self.slurmoutdir).mkdir(parents=True, exist_ok=True)  
+    if tmpdirname: self.slurmtmpdir = Path(tmpdirname)
+    Path(self.slurmtmpdir).mkdir(parents=True, exist_ok=True)
+
   def setup_computation(self, params = {}, reportfile = sys.stderr,
                         user = None, system = None, reason = None,
                         verbose = False):
@@ -269,40 +279,50 @@ class BatchComputation():
     self.computed = True
 
   def _run_on_slurm_cluster(self, verbose):
-    temp_dir = Path().absolute()/"tmp" # This should be determined by the user
-    temp_dir.mkdir(parents=True, exist_ok=True)
+    tmp_dir = tempfile.mkdtemp(prefix="prenacs", suffix="temp", dir=self.slurmtmpdir)
     if verbose:
       sys.stderr.write("# Computation will be on a SLURM cluster\n")
-    with tempfile.NamedTemporaryFile(delete=False, mode="wb", dir=temp_dir) as params_f:
+    with tempfile.NamedTemporaryFile(delete=False, mode="wb", dir=tmp_dir) as params_f:
       dill.dump(self.params, params_f)
-    with tempfile.NamedTemporaryFile(delete=False, mode="wb", dir=temp_dir) as input_list_f:
+    with tempfile.NamedTemporaryFile(delete=False, mode="wb", dir=tmp_dir) as input_list_f:
       dill.dump([i[0] for i in self.all_ids], input_list_f)
+
+    # Remove the output and temporary folder
+    def _remove_slurm_dirs():
+      shutil.rmtree(self.slurmoutdir)
+      shutil.rmtree(self.slurmtmpdir)
     
     # Run the sbatch script with given parameters and get the job id
     plugin_f = self.plugin.__file__  # Is there a better way to get the path?
-    submit_f = Path(__file__).parent.absolute()/"submit_array_job.sh"
     array_len = len(self.all_ids)
-    output_dir = Path().absolute()/"out" # Tentatively describe an output directory for testing
-    output_dir.mkdir(parents=True, exist_ok=True)
+    if array_len == 0:
+      sys.stderr.write("# Job array is empty! Computation could not start! Have you already performed computation for these units?\n")
+      _remove_slurm_dirs()
+      sys.exit(1)
+    else:
+      sys.stderr.write(f"# Number of tasks in the job array: {array_len}\n")
     try:
-      sbatch_out = sh.sbatch("--parsable", "-a", "0-{}".format(array_len-1),
-                              str(submit_f),
+      sbatch_out = sh.sbatch("--parsable", "-a", f"0-{array_len-1}",
+                              str(self.slurmsubmitter),
                               str(plugin_f),
                               str(params_f.name),
                               str(input_list_f.name),
-                              str(output_dir))
+                              str(self.slurmoutdir),
+                              _piped="err")
       job_id = [int(i) for i in str(sbatch_out).split(";") if i.strip().isdigit()][0]
     except sh.ErrorReturnCode:
-      raise ValueError("Job submission is unsuccessful!\n")
+      _remove_slurm_dirs()
+      raise ValueError("# Job submission is unsuccessful!\n")
     except Exception as exc:
+      _remove_slurm_dirs()
       raise(exc)
     else:
       sys.stderr.write("# Job submission is successful\n")
       
     # Get the job statistics with sacct command
-    def _get_stats(job_id):
+    def _get_stats(job_id, progress_bar):
       stats_dict = {}
-      stats_out = str(sh.uniq(sh.sort(sh.sacct("-n", "-X", "-j", "{}".format(job_id), "-o", "state%20")), "-c")).split("\n")
+      stats_out = str(sh.uniq(sh.sort(sh.sacct("-n", "-X", "-j", f"{job_id}", "-o", "state%20")), "-c")).split("\n")
       for stat in stats_out:
         s_pair = stat.split()
         s_desc, s_int = None, None
@@ -318,7 +338,8 @@ class BatchComputation():
             sys.stderr.write("# Job status cannot be retrieved at the moment!\n")
       if stats_dict:
         for k in stats_dict:
-          sys.stderr.write("# {}: {}\n".format(k, stats_dict[k]))
+          sys.stderr.write(f"# {k}: {stats_dict[k]}\n")
+        sys.stderr.write("================\n")
         if "COMPLETED" in stats_dict:
           n_completed = stats_dict["COMPLETED"]
           progress_bar.n = n_completed
@@ -327,23 +348,23 @@ class BatchComputation():
 
     # Report the status of each job    
     n_completed_jobs = 0
-    progress_bar = tqdm.tqdm(total=array_len)
-    while int(sh.wc(sh.squeue("--jobs", "{}".format(job_id)), "-l")) > 1:
+    progress_bar = tqdm.tqdm(total=array_len, ascii=True)
+    while int(sh.wc(sh.squeue("--jobs", f"{job_id}"), "-l")) > 1:
       sleep(5)
-      _get_stats(job_id)
-      sleep(15)
+      _get_stats(job_id, progress_bar)
+      sleep(10)
     
     # Check if all jobs have been completed
-    stats_dict = _get_stats(job_id)
+    stats_dict = _get_stats(job_id, progress_bar)
     n_completed = stats_dict.get("COMPLETED", 0)
     if n_completed == array_len:
       sys.stderr.write("# All jobs have been completed successfully!\n")
     else:
-      sys.stderr.write("# {} jobs have failed!\n".format(array_len-n_completed))
+      sys.stderr.write(f"# {array_len-n_completed} jobs have failed!\n")
     progress_bar.close()
     
     # Go into the output folder and collect the results
-    for out_f in glob(f"{output_dir}/*"):
+    for out_f in glob(f"{self.slurmoutdir}/*"):
       f_name = Path(out_f).stem
       if f_name.isdigit():
         f_id = int(f_name) 
@@ -351,6 +372,9 @@ class BatchComputation():
         with open(out_f, "rb") as f:
           results, *logs = dill.load(f)
           self._on_success(output_id, results, logs)
+    
+    # Remove the output and temporary folder      
+    _remove_slurm_dirs()
 
   def _run_in_parallel(self, verbose):
     entity_processor = EntityProcessor(dill.dumps(self.plugin.compute))
