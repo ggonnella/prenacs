@@ -40,8 +40,8 @@ class BatchComputation():
     self.report = None
     self.params = {}
     self.computed = False
-    self.slurmoutdir = Path("prenacs_slurm_out")
-    self.slurmtmpdir = Path("prenacs_tmp")
+    self.slurmoutdir = None
+    self.slurmtmpdir = None
 
   def _compute_skip_set(self, skip_arg, verbose):
     skip = set()
@@ -164,12 +164,11 @@ class BatchComputation():
     self.outfile = open(outfilename, "a") if outfilename else sys.stdout
     self.logfile = open(logfilename, "a") if logfilename else sys.stderr
 
-  def set_slurm_params(self, submitterfilename, outdirname = None, tmpdirname = None):
+  def set_slurm_params(self, submitterfilename, outdirname = None):
     self.slurmsubmitter = Path(submitterfilename)
-    if outdirname: self.slurmoutdir = Path(outdirname) 
-    Path(self.slurmoutdir).mkdir(parents=True, exist_ok=True)  
-    if tmpdirname: self.slurmtmpdir = Path(tmpdirname)
-    Path(self.slurmtmpdir).mkdir(parents=True, exist_ok=True)
+    self.slurmoutdir = Path(outdirname) if outdirname else Path("prenacs_slurm_out")
+    Path(self.slurmoutdir).mkdir(parents=True, exist_ok=True)
+    self.slurmtmpdir = tempfile.mkdtemp(prefix="prenacs", suffix="temp", dir=self.slurmoutdir)
 
   def setup_computation(self, params = {}, reportfile = sys.stderr,
                         user = None, system = None, reason = None,
@@ -279,21 +278,19 @@ class BatchComputation():
     self.computed = True
 
   def _run_on_slurm_cluster(self, verbose):
-    tmp_dir = tempfile.mkdtemp(prefix="prenacs", suffix="temp", dir=self.slurmtmpdir)
     if verbose:
       sys.stderr.write("# Computation will be on a SLURM cluster\n")
-    with tempfile.NamedTemporaryFile(delete=False, mode="wb", dir=tmp_dir) as params_f:
+    with tempfile.NamedTemporaryFile(delete=False, mode="wb", dir=self.slurmtmpdir) as params_f:
       dill.dump(self.params, params_f)
-    with tempfile.NamedTemporaryFile(delete=False, mode="wb", dir=tmp_dir) as input_list_f:
+    with tempfile.NamedTemporaryFile(delete=False, mode="wb", dir=self.slurmtmpdir) as input_list_f:
       dill.dump([i[0] for i in self.all_ids], input_list_f)
 
-    # Remove the output and temporary folder
+    # Remove the output and temporary folders
     def _remove_slurm_dirs():
       shutil.rmtree(self.slurmoutdir)
-      shutil.rmtree(self.slurmtmpdir)
     
     # Run the sbatch script with given parameters and get the job id
-    plugin_f = self.plugin.__file__  # Is there a better way to get the path?
+    plugin_f = self.plugin.__file__
     array_len = len(self.all_ids)
     if array_len == 0:
       sys.stderr.write("# Job array is empty! Computation could not start! Have you already performed computation for these units?\n")

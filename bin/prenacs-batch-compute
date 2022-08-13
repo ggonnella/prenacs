@@ -84,7 +84,7 @@ def main(args):
         args["--idsproc"], args["--skip"], args["--verbose"])
   if args["--mode"] == "slurm":
     batch_computation.set_slurm_params(args["--slurm-submitter"],
-      args["--slurm-outdir"], args["--slurm-tmpdir"])
+      args["--slurm-outdir"])
   batch_computation.set_output(args["--out"], args["--log"])
   batch_computation.setup_computation(args["--params"], args["--report"],
       args["--user"], args["--system"], args["--reason"], args["--verbose"])
@@ -107,8 +107,7 @@ def validated(args):
        "--log": Or(None, str),
        "--skip": Or(None, os.path.exists),
        "--slurm-submitter": os.path.exists,
-       "--slurm-outdir": Or(None, str),
-       "--slurm-tmpdir": Or(None, str)})
+       "--slurm-outdir": Or(None, str)})
   if args["--skip"] is None and args["--out"]:
      args["--skip"] = args["--out"]
   return args
