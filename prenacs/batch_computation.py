@@ -314,51 +314,61 @@ class BatchComputation():
       _remove_slurm_dirs()
       raise(exc)
     else:
-      sys.stderr.write("# Job submission is successful\n")
-      
-    # Get the job statistics with sacct command
-    def _get_stats(job_id, progress_bar):
+      sys.stderr.write(f"# Job submission is successful. Slurm job id: {job_id}\n")   
+
+    def _get_stats(job_id):
+      """ Get the job status """
       stats_dict = {}
-      stats_out = str(sh.uniq(sh.sort(sh.sacct("-n", "-X", "-j", f"{job_id}", "-o", "state%20")), "-c")).split("\n")
+      stats_out = str(sh.sacct("-n", "-X", "-j", f"{job_id}", "-o", "jobid,state%20")).split("\n")
       for stat in stats_out:
         s_pair = stat.split()
-        s_desc, s_int = None, None
+        s_id, s_desc = None, None
         if len(s_pair) == 2:
-          for p in s_pair:
-            if p.isdigit():
-             s_int = int(p)
-            else:
-              s_desc = p
-          if s_desc is not None and s_int is not None:
-            stats_dict[s_desc] = s_int
-          else:
-            sys.stderr.write("# Job status cannot be retrieved at the moment!\n")
+          last_char = s_pair[0].split(f"{job_id}_")[-1]
+          if last_char.isdigit():
+            s_id = int(last_char)
+          s_desc = s_pair[1]
+          if s_desc and s_id is not None:
+            if s_desc not in stats_dict:
+              stats_dict[s_desc] = []
+            stats_dict[s_desc].append(s_id)
       if stats_dict:
-        for k in stats_dict:
-          sys.stderr.write(f"# {k}: {stats_dict[k]}\n")
-        sys.stderr.write("================\n")
-        if "COMPLETED" in stats_dict:
-          n_completed = stats_dict["COMPLETED"]
-          progress_bar.n = n_completed
-          progress_bar.refresh()
-      return stats_dict      
+        sys.stderr.write("------------------\n")
+        for status in stats_dict:
+          sys.stderr.write(f"# {status}: {len(stats_dict[status])}\n")
+        sys.stderr.write("------------------\n")
+      else:
+        sys.stderr.write("# Job status cannot be retrieved at the moment!")
+      return stats_dict     
 
     # Report the status of each job    
-    n_completed_jobs = 0
+    n_completed = 0
     progress_bar = tqdm.tqdm(total=array_len, ascii=True)
     while int(sh.wc(sh.squeue("--jobs", f"{job_id}"), "-l")) > 1:
       sleep(5)
-      _get_stats(job_id, progress_bar)
+      stats_dict = _get_stats(job_id)
+      n_completed = len(stats_dict.get("COMPLETED", []))
+      progress_bar.n = n_completed
+      progress_bar.refresh()
       sleep(10)
     
-    # Check if all jobs have been completed
-    stats_dict = _get_stats(job_id, progress_bar)
-    n_completed = stats_dict.get("COMPLETED", 0)
-    if n_completed == array_len:
-      sys.stderr.write("# All jobs have been completed successfully!\n")
-    else:
-      sys.stderr.write(f"# {array_len-n_completed} jobs have failed!\n")
+    # Check if all tasks have been completed and if not write the status of each uncompleted task into a file
+    stats_dict = _get_stats(job_id)
+    n_completed = len(stats_dict.get("COMPLETED", []))
+    if progress_bar.n != n_completed:
+      progress_bar.n = n_completed
+      progress_bar.refresh()
     progress_bar.close()
+    if n_completed == array_len:
+      sys.stderr.write("# All tasks have been completed successfully!\n")
+    else:
+      sys.stderr.write(f"# {array_len-n_completed} tasks have NOT been completed!\n")
+      sys.stderr.write(f"# You can find details about uncompleted tasks in the file named failed_tasks_{job_id}.err\n")
+      with open(f"failed_tasks_{job_id}.err", "a") as f:
+        for status in stats_dict:
+          if status != "COMPLETED":
+            for i in stats_dict[status]:
+              f.write(f"{self.all_ids[i][1]}\t{status}\t{i}\n")
     
     # Go into the output folder and collect the results
     for out_f in glob(f"{self.slurmoutdir}/*"):
