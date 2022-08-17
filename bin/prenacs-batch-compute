@@ -62,8 +62,6 @@ Options:
                           modes: serial, parallel (uses multiprocessing), slurm
   --slurm-submitter FNAME define the path to the batch script which will be passed to sbatch     
   --slurm-outdir DIRNAME  define the directory for the output of single tasks (default: current directory)
-  --slurm-tmpdir DIRNAME  define the directory for the temporary files 
-                          necessary to pass information to the array job (default: current directory)
 {report_opts}
 {common}
 """
@@ -83,7 +81,7 @@ def main(args):
     batch_computation.input_from_idsfile(args["<idsfile>"], args["<col>"],
         args["--idsproc"], args["--skip"], args["--verbose"])
   if args["--mode"] == "slurm":
-    batch_computation.set_slurm_params(args["--slurm-submitter"],
+    batch_computation.set_slurm_params(args["<plugin>"], args["--slurm-submitter"],
       args["--slurm-outdir"])
   batch_computation.set_output(args["--out"], args["--log"])
   batch_computation.setup_computation(args["--params"], args["--report"],

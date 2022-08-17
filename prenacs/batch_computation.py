@@ -164,11 +164,12 @@ class BatchComputation():
     self.outfile = open(outfilename, "a") if outfilename else sys.stdout
     self.logfile = open(logfilename, "a") if logfilename else sys.stderr
 
-  def set_slurm_params(self, submitterfilename, outdirname = None):
+  def set_slurm_params(self, pluginfilename, submitterfilename, outdirname = None):
     self.slurmsubmitter = Path(submitterfilename)
     self.slurmoutdir = Path(outdirname) if outdirname else Path("prenacs_slurm_out")
     Path(self.slurmoutdir).mkdir(parents=True, exist_ok=True)
     self.slurmtmpdir = tempfile.mkdtemp(prefix="prenacs", suffix="temp", dir=self.slurmoutdir)
+    self.plugin_f = Path(pluginfilename)
 
   def setup_computation(self, params = {}, reportfile = sys.stderr,
                         user = None, system = None, reason = None,
@@ -290,7 +291,6 @@ class BatchComputation():
       shutil.rmtree(self.slurmoutdir)
     
     # Run the sbatch script with given parameters and get the job id
-    plugin_f = self.plugin.__file__
     array_len = len(self.all_ids)
     if array_len == 0:
       sys.stderr.write("# Job array is empty! Computation could not start! Have you already performed computation for these units?\n")
@@ -301,7 +301,7 @@ class BatchComputation():
     try:
       sbatch_out = sh.sbatch("--parsable", "-a", f"0-{array_len-1}",
                               str(self.slurmsubmitter),
-                              str(plugin_f),
+                              str(self.plugin_f),
                               str(params_f.name),
                               str(input_list_f.name),
                               str(self.slurmoutdir),
@@ -352,33 +352,37 @@ class BatchComputation():
       progress_bar.refresh()
       sleep(10)
     
-    # Check if all tasks have been completed and if not write the status of each uncompleted task into a file
+    # Check if any of the tasks has been completed
+    # If so, collect the results into the output file
+    # If not, write the status of each uncompleted task into a tsv file
     stats_dict = _get_stats(job_id)
     n_completed = len(stats_dict.get("COMPLETED", []))
     if progress_bar.n != n_completed:
       progress_bar.n = n_completed
       progress_bar.refresh()
     progress_bar.close()
-    if n_completed == array_len:
-      sys.stderr.write("# All tasks have been completed successfully!\n")
+    if n_completed > 0:
+      if n_completed == array_len:
+        sys.stderr.write("# All tasks have been completed successfully!\n")
+      else:
+        sys.stderr.write(f"# {array_len-n_completed} tasks have NOT been completed!\n")
+        err_f = f"failed_tasks_{job_id}.err"
+        sys.stderr.write(f"# You can find the details about the uncompleted tasks in the file named {err_f}\n")
+        with open(err_f, "a") as f:
+          for status in stats_dict:
+            if status != "COMPLETED":
+              for i in stats_dict[status]:
+                f.write(f"{self.all_ids[i][1]}\t{status}\t{i}\n")
+      for out_f in glob(f"{self.slurmoutdir}/*"):
+        f_name = Path(out_f).stem
+        if f_name.isdigit():
+          f_id = int(f_name) 
+          output_id = self.all_ids[f_id][1]
+          with open(out_f, "rb") as f:
+            results, *logs = dill.load(f)
+            self._on_success(output_id, results, logs)
     else:
-      sys.stderr.write(f"# {array_len-n_completed} tasks have NOT been completed!\n")
-      sys.stderr.write(f"# You can find details about uncompleted tasks in the file named failed_tasks_{job_id}.err\n")
-      with open(f"failed_tasks_{job_id}.err", "a") as f:
-        for status in stats_dict:
-          if status != "COMPLETED":
-            for i in stats_dict[status]:
-              f.write(f"{self.all_ids[i][1]}\t{status}\t{i}\n")
-    
-    # Go into the output folder and collect the results
-    for out_f in glob(f"{self.slurmoutdir}/*"):
-      f_name = Path(out_f).stem
-      if f_name.isdigit():
-        f_id = int(f_name) 
-        output_id = self.all_ids[f_id][1]
-        with open(out_f, "rb") as f:
-          results, *logs = dill.load(f)
-          self._on_success(output_id, results, logs)
+      sys.stderr.write("# All tasks have failed!\n")
     
     # Remove the output and temporary folder      
     _remove_slurm_dirs()
