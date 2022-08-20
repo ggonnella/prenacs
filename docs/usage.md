@@ -210,16 +210,17 @@ can be specified with the option ``--slurm-outdir``.
 
 Slurm job arrays are utilized to perform computations for each task 
 assigned to each input entity. If any of the tasks is failed, the ID of the relevant entity, 
-the reason for the failure and the task ID in the Slurm job array 
+the reason for the failure, and the task ID in the Slurm job array 
 are written to a tab-separated file named ``failed_tasks_{JOB_ID}.err``, 
 where the JOB_ID corresponds to the Slurm job ID. If all tasks are failed, 
-no such file is created, but the user is informed with a message.
+no such file is created, but the user is informed with a message. 
+The status of the job array is checked and reported to the user every 15 seconds.
 
 Even if some tasks are failed, the results for the remaining completed tasks 
 are still collected and reported in the output file. The user can then attempt 
 to compute the failed tasks again using the information provided in the file 
 ``failed_tasks_{JOB_ID}.err``. This can be especially useful for jobs that require 
-a large amount of computation but have few failed tasks for some reason. 
+a large amount of computation but have few failed tasks for some reason.
 
 ### Input entities provided as a set of identifiers
 

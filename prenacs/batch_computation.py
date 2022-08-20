@@ -293,7 +293,7 @@ class BatchComputation():
     # Run the sbatch script with given parameters and get the job id
     array_len = len(self.all_ids)
     if array_len == 0:
-      sys.stderr.write("# Job array is empty! Computation could not start! Have you already performed computation for these units?\n")
+      sys.stderr.write("# Job array is empty! Computation could not start! Have you already performed the computation for these units?\n")
       _remove_slurm_dirs()
       sys.exit(1)
     else:
@@ -354,7 +354,7 @@ class BatchComputation():
     
     # Check if any of the tasks has been completed
     # If so, collect the results into the output file
-    # If not, write the status of each uncompleted task into a tsv file
+    # If some tasks are failed, write the status of each uncompleted task into a tsv file
     stats_dict = _get_stats(job_id)
     n_completed = len(stats_dict.get("COMPLETED", []))
     if progress_bar.n != n_completed:
@@ -365,14 +365,14 @@ class BatchComputation():
       if n_completed == array_len:
         sys.stderr.write("# All tasks have been completed successfully!\n")
       else:
-        sys.stderr.write(f"# {array_len-n_completed} tasks have NOT been completed!\n")
         err_f = f"failed_tasks_{job_id}.err"
-        sys.stderr.write(f"# You can find the details about the uncompleted tasks in the file named {err_f}\n")
         with open(err_f, "a") as f:
           for status in stats_dict:
             if status != "COMPLETED":
               for i in stats_dict[status]:
                 f.write(f"{self.all_ids[i][1]}\t{status}\t{i}\n")
+        sys.stderr.write(f"# {array_len-n_completed} tasks have NOT been completed!\n")
+        sys.stderr.write(f"# You can find the details about the uncompleted tasks in the file named {err_f}\n")
       for out_f in glob(f"{self.slurmoutdir}/*"):
         f_name = Path(out_f).stem
         if f_name.isdigit():
