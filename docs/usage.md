@@ -198,20 +198,29 @@ The computation can be run on a computer cluster managed by Slurm.
 For this to work the ``prenacs-batch-compute`` script must be called
 with the option ``--mode slurm``.
 
-TO BE POLISHED: (also: these options do not exist yet)
-
 The user must provide, using the option ``--slurm-submitter <PATH_TO_SCRIPT>``
-(TODO: maybe use a nicer name for this option)
-the path to a Bash script which is passed to ``sbatch``...
-An example is given in the library source code ``prenacs/NAME_FORGOTTEN.sh``.
+the path to a Bash script which is passed to the ``sbatch`` command.
+An example is given in the library source code ``prenacs/submit_array_job.sh``, 
+and this file should be used as a template.
 
-In these case, further options are available: ``--slurm-outdir``
-and ``--slurm-tmpdir`` are used, respectively, to set the directory
-where the output of the single tasks is stored, and the temporary
-directory used to store the temporary files necessary to pass information
-to the array job.
+Temporary files are used to perform a computation on a Slurm cluster. 
+By default, these files are created in the current directory and 
+removed after the computation is done. The directory of these files 
+can be specified with the option ``--slurm-outdir``.
 
-ADD MORE DOCUMENTATION HERE...
+Slurm job arrays are utilized to perform computations for each task 
+assigned to each input entity. If any of the tasks is failed, the ID of the relevant entity, 
+the reason for the failure, and the task ID in the Slurm job array 
+are written to a tab-separated file named ``failed_tasks_{JOB_ID}.err``, 
+where the JOB_ID corresponds to the Slurm job ID. If all tasks are failed, 
+no such file is created, but the user is informed with a message. 
+The status of the job array is checked and reported to the user every 15 seconds.
+
+Even if some tasks are failed, the results for the remaining completed tasks 
+are still collected and reported in the output file. The user can then attempt 
+to compute the failed tasks again using the information provided in the file 
+``failed_tasks_{JOB_ID}.err``. This can be especially useful for jobs that require 
+a large amount of computation but have few failed tasks for some reason.
 
 ### Input entities provided as a set of identifiers
 
