@@ -74,9 +74,9 @@ def test_prenacs_cli_batch_computing_files(script_runner):
   for parallel in [False, True]:
     with auto_args(parallel, ECHO) as \
         (args, outfilename, reportfilename, logfilename, paramsfilename):
-      ret = script_runner.run(str(BIN/"prenacs"), "batch-compute", "files",
+      ret = script_runner.run(str(BIN/"prenacs"), "batch-compute",
                               str(TESTDATA/"wc_from_filename_plugin.sh"),
-                              str(TESTDATA/"*.data"), *args)
+                              "files", str(TESTDATA/"*.data"), *args)
       assert ret.returncode == 0
       check_report(reportfilename, "wc", "1.0", 9, "completed")
       check_results(outfilename, str(TESTDATA/"wc_expected_wfilename.tsv"),
@@ -89,9 +89,9 @@ def test_prenacs_cli_batch_computing_ids(script_runner):
     params = {"testdatadir": str(TESTDATA)}
     with auto_args(parallel, ECHO, params) as \
         (args, outfilename, reportfilename, logfilename, paramsfilename):
-      ret = script_runner.run(str(BIN/"prenacs"), "batch-compute", "ids",
+      ret = script_runner.run(str(BIN/"prenacs"), "batch-compute",
                               str(TESTDATA/"wc_from_id_plugin.sh"),
-                              str(TESTDATA/"ids.tsv"),
+                              "ids", str(TESTDATA/"ids.tsv"),
                               "--system", "testsystem", *args)
       assert ret.returncode == 0
       check_report(reportfilename, "wc", "1.0", 9, "completed", params=params,
@@ -105,9 +105,9 @@ def test_prenacs_cli_batch_computing_ids_with_error_in_one_unit(script_runner):
     params = {"testdatadir": str(TESTDATA)}
     with auto_args(parallel, ECHO, params) as \
         (args, outfilename, reportfilename, logfilename, paramsfilename):
-      ret = script_runner.run(str(BIN/"prenacs"), "batch-compute", "ids",
+      ret = script_runner.run(str(BIN/"prenacs"), "batch-compute",
                               str(TESTDATA/"wc_from_id_plugin.sh"),
-                              str(TESTDATA/"ids.tsv"), "2",
+                              "ids", str(TESTDATA/"ids.tsv"), "2",
                               "--user", "testuser", *args)
       assert ret.returncode == 0
       check_report(reportfilename, "wc", "1.0", 9, "completed", params=params,
@@ -122,9 +122,9 @@ def test_prenacs_cli_batch_computing_ids_with_proc(script_runner):
     params = {"testdatadir": str(TESTDATA)}
     with auto_args(parallel, ECHO, params) as \
         (args, outfilename, reportfilename, logfilename, paramsfilename):
-      ret = script_runner.run(str(BIN/"prenacs"), "batch-compute", "ids",
+      ret = script_runner.run(str(BIN/"prenacs"), "batch-compute",
                               str(TESTDATA/"wc_from_id_plugin.sh"),
-                              str(TESTDATA/"ids.tsv"), "2",
+                              "ids", str(TESTDATA/"ids.tsv"), "2",
                               "--idsproc", str(TESTDATA/"one_adder_idsproc.sh"),
                               "--reason", "new_attributes", *args)
       assert ret.returncode == 0
