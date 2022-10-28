@@ -21,7 +21,7 @@ See 'prenacs <command> --help' for more information on a specific command.
 """
 from docopt import docopt
 from prenacs import __version__, error, logger
-from prenacs.commands import _support
+from prenacs.commands import helpers as _support
 
 if __name__ == '__main__':
   args = docopt(__doc__, version=__version__, options_first=True)
