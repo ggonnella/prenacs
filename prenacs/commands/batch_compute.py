@@ -90,7 +90,7 @@ def validated(args):
        "--out": Or(None, str),
        "--log": Or(None, str),
        "--skip": Or(None, os.path.exists),
-       "--slurm-submitter": os.path.exists,
+       "--slurm-submitter": Or(None, os.path.exists),
        "--slurm-outdir": Or(None, str)})
   if args["--skip"] is None and args["--out"]:
      args["--skip"] = args["--out"]

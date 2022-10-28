@@ -14,11 +14,11 @@ from contextlib import contextmanager
 
 @pytest.mark.script_launch_mode('subprocess')
 def test_prenacs_cli(connection_creator, connection_args, script_runner):
-  ret = script_runner.run(str(BIN/"prenacs-setup-database"), *connection_args)
-  assert(ret.returncode == 0)
+  ret = script_runner.run(str(BIN/"prenacs"), "setup-database", *connection_args)
+  assert ret.returncode == 0
   attrs = connection_args + [TESTDATA/"fake_attrs.yaml", "--testmode"]
   ret = script_runner.run(str(BIN/"prenacs"), "manage-attributes", *attrs)
-  assert(ret.returncode == 0)
+  assert ret.returncode == 0
   with open(TESTDATA/"fake_attrs.yaml") as f:
     definitions = yaml.safe_load(f)
   connection = connection_creator()
@@ -34,7 +34,7 @@ def test_prenacs_cli(connection_creator, connection_args, script_runner):
     connection.close()
   attrs = connection_args + [TESTDATA/"empty_dict.yaml", "--drop", "--testmode"]
   ret = script_runner.run(str(BIN/"prenacs"), "manage-attributes", *attrs)
-  assert(ret.returncode == 0)
+  assert ret.returncode == 0
   connection = connection_creator()
   check_no_attributes(connection)
   connection.close()
