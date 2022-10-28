@@ -1,0 +1,6 @@
+*.cfg
+*.egg-info
+__pycache__
+testdata/target/
+build
+dist
