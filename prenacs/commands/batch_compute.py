@@ -66,6 +66,8 @@ Options:
   --system S               system_id for the report (default: socket.gethostname())
   --reason R               reason field for the report (default: None)
   --params FNAME           YAML file with additional parameters (default: None)
+  --quiet, -q              suppress output
+  --debug, -d              debug mode
   --verbose, -v            be verbose
   --version, -V            show script version
   --help, -h               show this help message

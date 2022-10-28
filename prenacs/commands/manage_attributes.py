@@ -22,15 +22,17 @@ Arguments:
   definitions:  YAML file containing the attribute definitions
 
 Options:
-  --drop           drop columns and delete definition record for all attributes
-                   not present in the YAML file (be careful, DANGEROUS!)
-  --check          check consistency of definition records and attribute columns
-  --update         update definitions if changed
-  --testmode       use the parameters for tests
-  --dbpfx PFX              database tablenames prefix to use (default: prenacs_)
-  --verbose, -v            be verbose
-  --version, -V            show script version
-  --help, -h               show this help message
+  --drop          drop columns and delete definition record for all attributes
+                  not present in the YAML file (be careful, DANGEROUS!)
+  --check         check consistency of definition records and attribute columns
+  --update        update definitions if changed
+  --testmode      use the parameters for tests
+  --dbpfx PFX     database tablenames prefix to use (default: prenacs_)
+  --quiet, -q     suppress output
+  --debug, -d     debug mode
+  --verbose, -v   be verbose
+  --version, -V   show script version
+  --help, -h      show this help message
 """
 from schema import And, Or, Use
 import yaml

@@ -23,6 +23,8 @@ Arguments:
   definitions:  YAML file containing the attribute definitions
 
 Options:
+  --quiet, -q              suppress output
+  --debug, -d              debug mode
   --verbose, -v            be verbose
   --version, -V            show script version
   --help, -h               show this help message

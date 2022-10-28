@@ -28,6 +28,8 @@ Options:
   --replace-report-record  replace existing db record for the computation
                            report, if changed (default: fail if changed)
   --dbpfx PFX              database tablenames prefix to use (default: prenacs_)
+  --quiet, -q              suppress output
+  --debug, -d              debug mode
   --verbose, -v            be verbose
   --version, -V            show script version
   --help, -h               show this help message
