@@ -1,0 +1,3 @@
+[ ] all error thrown must become intances of a library-specific error class
+    prenacs/error.py added, but the raise in the package must be changed
+    similar must be done for multiplug, attrtables and snacli
