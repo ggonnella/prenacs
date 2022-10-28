@@ -8,3 +8,5 @@ from .dbschema.attribute_definition import AttributeDefinition
 from .dbschema.plugin_description import PluginDescription
 from .dbschema.computation_report import ComputationReport
 from .results_loader import ResultsLoader
+
+__version__="1.2"
