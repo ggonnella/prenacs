@@ -1,5 +1,30 @@
-Prenacs: a Python package for provenance-tracking computation and
-storage of attributes of entities
+---
+title: 'Prenacs: a Python package for provenance-tracking computation and storage of attributes of entities'
+tags:
+- Python
+- XXX
+authors:
+- name: Ozan Kambertay
+  orcid: XXX
+  equal-contrib: true
+  affiliation: "1"
+- name: Giorgio Gonnella
+  orcid: 0000-0003-3900-5397
+  equal-contrib: true
+  corresponding: true
+  affiliation: "1, 2"
+affiliations:
+- name: Department of Bioinformatics (IMG), University of Göttingen, Göttingen, Germany
+  index: 1
+- name: Center for Bioinformatics (ZBH), University of Hamburg, Hamburg, Germany
+  index: 2
+date: 28 October 2022
+bibliography: paper.bib
+---
+
+# Summary
+
+XXX
 
 # Statement of need
 
