@@ -40,7 +40,17 @@ from prenacs import AttributeDefinitionsManager,\
 from prenacs.database import DEFAULT_AVT_PREFIX
 from prenacs.commands import helpers as scripts_helpers
 
+def validated(args):
+  args = scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
+      {"<name>": And(str, len),
+       "<definition>": And(str, Use(open), Use(yaml.safe_load)),
+       "--testmode":   Or(None, True, False),
+       "--dbpfx":      Or(None, str)})
+  args["--dbpfx"] = args["--dbpfx"] or DEFAULT_AVT_PREFIX
+  return args
+
 def main(args):
+  args = validated(args)
   engine = create_engine(scripts_helpers.database.connection_string_from(args),
                          echo=args["--verbose"],
                          future=True)
@@ -54,18 +64,9 @@ def main(args):
       adm = AttributeDefinitionsManager(avt)
       adm.insert(args["<name>"], args["<definition>"])
 
-def validated(args):
-  args = scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
-      {"<name>": And(str, len),
-       "<definition>": And(str, Use(open), Use(yaml.safe_load)),
-       "--testmode":   Or(None, True, False),
-       "--dbpfx":      Or(None, str)})
-  args["--dbpfx"] = args["--dbpfx"] or DEFAULT_AVT_PREFIX
-  return args
-
-
 with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                  input=["<name>", "<definition>"],
                  params=["--testmode", "--verbose"],
                  version=__version__) as args:
-  if args: main(validated(args))
+  if args:
+    main(args)

@@ -24,7 +24,11 @@ import dill
 from pathlib import Path
 from prenacs import plugins_helper, __version__
 
+def validated(args):
+  return args
+
 def main(args):
+  args = validated(args)
   plugin = multiplug.importer(args["<plugin>"],
                **plugins_helper.COMPUTE_PLUGIN_INTERFACE)
 

@@ -80,8 +80,24 @@ import snacli
 from prenacs import BatchComputation, __version__
 from prenacs.commands import helpers as scripts_helpers
 
+def validated(args):
+  args = scripts_helpers.validate(args, scripts_helpers.report.ARGS_SCHEMA,
+      {"<globpattern>": Or(None, str),
+       "<idsfile>": Or(None, os.path.exists),
+       "--idsproc": Or(None, os.path.exists),
+       "<col>": scripts_helpers.common.OPTCOLNUM_VALIDATOR,
+       "<plugin>": os.path.exists,
+       "--out": Or(None, str),
+       "--log": Or(None, str),
+       "--skip": Or(None, os.path.exists),
+       "--slurm-submitter": os.path.exists,
+       "--slurm-outdir": Or(None, str)})
+  if args["--skip"] is None and args["--out"]:
+     args["--skip"] = args["--out"]
+  return args
 
 def main(args):
+  args = validated(args)
   batch_computation = BatchComputation(args["<plugin>"], args["--verbose"])
   if args["<globpattern>"]:
     batch_computation.input_from_globpattern(args["<globpattern>"],
@@ -103,26 +119,11 @@ def main(args):
     sys.exit(1)
   batch_computation.finalize()
 
-def validated(args):
-  args = scripts_helpers.validate(args, scripts_helpers.report.ARGS_SCHEMA,
-      {"<globpattern>": Or(None, str),
-       "<idsfile>": Or(None, os.path.exists),
-       "--idsproc": Or(None, os.path.exists),
-       "<col>": scripts_helpers.common.OPTCOLNUM_VALIDATOR,
-       "<plugin>": os.path.exists,
-       "--out": Or(None, str),
-       "--log": Or(None, str),
-       "--skip": Or(None, os.path.exists),
-       "--slurm-submitter": os.path.exists,
-       "--slurm-outdir": Or(None, str)})
-  if args["--skip"] is None and args["--out"]:
-     args["--skip"] = args["--out"]
-  return args
-
 with snacli.args(scripts_helpers.report.SNAKE_ARGS,
                  input=["<plugin>", "--idsproc"],
                  log=["--out", "--log"],
                  params=["<globpattern>", "<idsfile>", "<col>", "--verbose",
                          "--skip", "--mode", "--slurm-outdir", "--slurm-tmpdir"],
                  version=__version__) as args:
-  if args: main(validated(args))
+  if args:
+    main(args)

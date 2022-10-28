@@ -31,7 +31,11 @@ import prenacs.database
 from prenacs import __version__
 from prenacs.commands import helpers as scripts_helpers
 
+def validated(args):
+  return scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA)
+
 def main(args):
+  args = validated(args)
   engine = create_engine(scripts_helpers.database.connection_string_from(args),
                          echo=args["--verbose"],
                          future=True)
@@ -39,10 +43,8 @@ def main(args):
     with connection.begin():
       prenacs.database.create(connection)
 
-def validated(args):
-  return scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA)
-
 with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                  params=["--verbose"],
                  version=__version__) as args:
-  if args: main(validated(args))
+  if args:
+    main(args)

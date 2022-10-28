@@ -37,15 +37,17 @@ import snacli
 from prenacs import PluginInterfaceAnalyser, __version__
 from prenacs.commands import helpers as scripts_helpers
 
-def main(args):
-  analyser = PluginInterfaceAnalyser(args["<plugin>"],
-                                     verbose=args["--verbose"])
-  return analyser.run(args["<definitions>"])
-
 def validated(args):
   return scripts_helpers.validate(args, {"<plugin>": os.path.exists,
     "<definitions>": Or(None, And(str, Use(open), Use(yaml.safe_load)))})
 
+def main(args):
+  args = validated(args)
+  analyser = PluginInterfaceAnalyser(args["<plugin>"],
+                                     verbose=args["--verbose"])
+  return analyser.run(args["<definitions>"])
+
 with snacli.args(input=["<plugin>", "<definitions>"],
                  version=__version__) as args:
-  if args: main(validated(args))
+  if args:
+    main(args)

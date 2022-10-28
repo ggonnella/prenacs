@@ -33,7 +33,14 @@ import prenacs.database
 from prenacs import AttributeDefinition, __version__
 from prenacs.commands import helpers as scripts_helpers
 
+def validated(args):
+  args = scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
+                                  {"--dbpfx": Or(None, str)})
+  args["--dbpfx"] = args["--dbpfx"] or "prenacs_attribute_value_t"
+  return args
+
 def main(args):
+  args = validated(args)
   engine = create_engine(scripts_helpers.database.connection_string_from(args),
                          echo=args["--verbose"],
                          future=True)
@@ -44,13 +51,8 @@ def main(args):
                                  tablename_prefix=args["--dbpfx"])
       prenacs.database.drop(connection, avt)
 
-def validated(args):
-  args = scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
-                                  {"--dbpfx": Or(None, str)})
-  args["--dbpfx"] = args["--dbpfx"] or "prenacs_attribute_value_t"
-  return args
-
 with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                  params=["--verbose"],
                  version=__version__) as args:
-  if args: main(validated(args))
+  if args:
+    main(args)

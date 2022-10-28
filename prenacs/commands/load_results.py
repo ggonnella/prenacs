@@ -45,7 +45,19 @@ from prenacs import ResultsLoader, AttributeDefinition, \
 from prenacs.database import DEFAULT_AVT_PREFIX
 from prenacs.commands import helpers as scripts_helpers
 
+def validated(args):
+  args = scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
+                  {"<results>": And(str, open),
+                   "<report>": And(str, open),
+                   "<plugin>": And(str, open),
+                   "--replace-plugin-record": Or(None, True, False),
+                   "--replace-report-record": Or(None, True, False),
+                   "--dbpfx":      Or(None, str)})
+  args["--dbpfx"] = args["--dbpfx"] or DEFAULT_AVT_PREFIX
+  return args
+
 def main(args):
+  args = validated(args)
   if os.stat(args["<results>"]).st_size == 0:
     if args["--verbose"]:
       sys.stderr.write("# nothing to load, as results file is empty \n")
@@ -64,20 +76,10 @@ def main(args):
       results_loader.run(args["<results>"], args["<report>"],
                          args["--replace-report-record"], args["--verbose"])
 
-def validated(args):
-  args = scripts_helpers.validate(args, scripts_helpers.database.ARGS_SCHEMA,
-                  {"<results>": And(str, open),
-                   "<report>": And(str, open),
-                   "<plugin>": And(str, open),
-                   "--replace-plugin-record": Or(None, True, False),
-                   "--replace-report-record": Or(None, True, False),
-                   "--dbpfx":      Or(None, str)})
-  args["--dbpfx"] = args["--dbpfx"] or DEFAULT_AVT_PREFIX
-  return args
-
 with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                  input=["<results>", "<report>", "<plugin>"],
                  params=["--replace-plugin-record", "--replace-report-record",
                          "--verbose"],
                  version=__version__) as args:
-  if args: main(validated(args))
+  if args:
+    main(args)
