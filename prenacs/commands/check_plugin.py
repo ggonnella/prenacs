@@ -23,7 +23,9 @@ Arguments:
   definitions:  YAML file containing the attribute definitions
 
 Options:
-{common}
+  --verbose, -v            be verbose
+  --version, -V            show script version
+  --help, -h               show this help message
 """
 
 from schema import And, Use, Or
@@ -43,6 +45,5 @@ def validated(args):
     "<definitions>": Or(None, And(str, Use(open), Use(yaml.safe_load)))})
 
 with snacli.args(input=["<plugin>", "<definitions>"],
-                 docvars={"common": scripts_helpers.common.ARGS_DOC},
                  version=__version__) as args:
   if args: main(validated(args))

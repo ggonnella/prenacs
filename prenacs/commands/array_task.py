@@ -6,9 +6,14 @@ passing the <task_id>-th line of the <input_list_file> file
 as input entity ID/filename
 
 Usage:
-  prenacs array-task <plugin> <dumped_params> \
-                                      <dumped_input_list> <task_id> \
-                                      <output_dir>
+  prenacs array-task [options] <plugin> <dumped_params> \
+                               <dumped_input_list> <task_id> \
+                               <output_dir>
+
+Options:
+  --verbose, -v            be verbose
+  --version, -V            show script version
+  --help, -h               show this help message
 """
 
 import docopt

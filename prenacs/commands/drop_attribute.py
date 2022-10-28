@@ -9,15 +9,21 @@ Drop an attribute definition record and attribute columns in the
 attribute_value tables.
 
 Usage:
-  prenacs drop-attribute [options] {db_args_usage} <name>
+  prenacs destroy-database [options] \
+      <dbuser> <dbpass> <dbname> <dbsocket> <name>
 
 Arguments:
-{db_args}
-  <name>       name of the attribute
+  dbuser:       database user to use
+  dbpass:       password of the database user
+  dbname:       database name
+  dbsocket:     connection socket file
+  name:         name of the attribute
 
 Options:
-{db_opts}
-{common}
+  --dbpfx PFX              database tablenames prefix to use (default: prenacs_)
+  --verbose, -v            be verbose
+  --version, -V            show script version
+  --help, -h               show this help message
 """
 from schema import And, Or
 from sqlalchemy import create_engine
@@ -51,9 +57,5 @@ def validated(args):
 with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                  input=["<name>"],
                  params=["--verbose"],
-                 docvars={"common": scripts_helpers.common.ARGS_DOC,
-                          "db_opts": scripts_helpers.database.OPTS_DOC,
-                          "db_args": scripts_helpers.database.ARGS_DOC,
-                          "db_args_usage": scripts_helpers.database.ARGS_USAGE},
                  version=__version__) as args:
   if args: main(validated(args))

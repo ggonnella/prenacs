@@ -8,23 +8,29 @@
 Load computation results into DB from a TSV file and a computation report.
 
 Usage:
-  prenacs load-results [options] {db_args_usage}
+  prenacs load-results [options] \
+      <dbuser> <dbpass> <dbname> <dbsocket> \
                              <results> <report> <plugin>
 
 Arguments:
-{db_args}
-  results:   results file, tsv with columns:
-             accession, attr_class, attr_instance, value[, score]
-  report:    computation report file (yaml format)
-  plugin:    plugin used for the computation
+  dbuser:       database user to use
+  dbpass:       password of the database user
+  dbname:       database name
+  dbsocket:     connection socket file
+  results:      results file, tsv with columns:
+                accession, attr_class, attr_instance, value[, score]
+  report:       computation report file (yaml format)
+  plugin:       plugin used for the computation
 
 Options:
   --replace-plugin-record  replace existing db record for current version of the
                            plugin, if changed (default: fail if changed)
   --replace-report-record  replace existing db record for the computation
                            report, if changed (default: fail if changed)
-{db_opts}
-{common}
+  --dbpfx PFX              database tablenames prefix to use (default: prenacs_)
+  --verbose, -v            be verbose
+  --version, -V            show script version
+  --help, -h               show this help message
 """
 from schema import And, Or
 import sys
@@ -71,9 +77,5 @@ with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                  input=["<results>", "<report>", "<plugin>"],
                  params=["--replace-plugin-record", "--replace-report-record",
                          "--verbose"],
-                 docvars={"common": scripts_helpers.common.ARGS_DOC,
-                          "db_args": scripts_helpers.database.ARGS_DOC,
-                          "db_opts": scripts_helpers.database.OPTS_DOC,
-                          "db_args_usage": scripts_helpers.database.ARGS_USAGE},
                  version=__version__) as args:
   if args: main(validated(args))

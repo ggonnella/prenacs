@@ -9,17 +9,24 @@ Create a attribute definition record and attribute columns in the
 attribute_value tables according to the definition in a given YAML file.
 
 Usage:
-  prenacs create-attribute [options] {db_args_usage} <name> <definition>
+  prenacs create-attribute [options] \
+      <dbuser> <dbpass> <dbname> <dbsocket> \
+      <name> <definition>
 
 Arguments:
-{db_args}
-  <name>       name of the attribute
-  definition:  YAML file containing the attribute definition
+  dbuser:       database user to use
+  dbpass:       password of the database user
+  dbname:       database name
+  dbsocket:     connection socket file
+  name:         name of the attribute
+  definition:   YAML file containing the attribute definition
 
 Options:
-  --testmode       use the parameters for tests
-{db_opts}
-{common}
+  --testmode               use preset test parameters
+  --dbpfx PFX              database tablenames prefix to use (default: prenacs_)
+  --verbose, -v            be verbose
+  --version, -V            show script version
+  --help, -h               show this help message
 """
 from schema import And, Or, Use
 import yaml
@@ -58,9 +65,5 @@ def validated(args):
 with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                  input=["<name>", "<definition>"],
                  params=["--testmode", "--verbose"],
-                 docvars={"common": scripts_helpers.common.ARGS_DOC,
-                          "db_opts": scripts_helpers.database.OPTS_DOC,
-                          "db_args": scripts_helpers.database.ARGS_DOC,
-                          "db_args_usage": scripts_helpers.database.ARGS_USAGE},
                  version=__version__) as args:
   if args: main(validated(args))

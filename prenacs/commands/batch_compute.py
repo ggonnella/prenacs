@@ -3,7 +3,6 @@
 #
 # (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
 #
-
 """
 Perform computations on multiple files, using the compute function of the
 specified Python/Nim/Rust plugin module (see plugins/README.md for the plugins
@@ -46,24 +45,30 @@ Output:
   version, parameters, username, hostname, etc.
 
 Options:
-  --idsproc FNAME         Python/Nim/Rust module, providing compute_id(str)->str;
-                          allows to edit the IDs/filenames used for (1) results;
-                          (2) --skip option; (3) in "ids" mode only: input to the
-                          compute() function
-  --skip, -s FNAME        skip computations for which the ID is contained in this
-                          file (one ID per line, or TSV with IDs in first column)
-  --out, -o FNAME         output results to file (default: stdout);
-                          if the file exists, the output is appended
-                          and the file is used also for skipping previously computed
-                          results (unless a different file is specified with --skip)
-  --log, -l FNAME         write logs to the given file (default: stderr);
-                          if the file exists, the output is appended
-  --mode MODE             select the computation mode (default: parallel)
-                          modes: serial, parallel (uses multiprocessing), slurm
-  --slurm-submitter FNAME define the path to the batch script which will be passed to sbatch     
-  --slurm-outdir DIRNAME  define the directory for the output of single tasks (default: current directory)
-{report_opts}
-{common}
+  --idsproc FNAME          Python/Nim/Rust module, providing compute_id(str)->str;
+                           allows to edit the IDs/filenames used for (1) results;
+                           (2) --skip option; (3) in "ids" mode only: input to the
+                           compute() function
+  --skip, -s FNAME         skip computations for which the ID is contained in this
+                           file (one ID per line, or TSV with IDs in first column)
+  --out, -o FNAME          output results to file (default: stdout);
+                           if the file exists, the output is appended
+                           and the file is used also for skipping previously computed
+                           results (unless a different file is specified with --skip)
+  --log, -l FNAME          write logs to the given file (default: stderr);
+                           if the file exists, the output is appended
+  --mode MODE              select the computation mode (default: parallel)
+                           modes: serial, parallel (uses multiprocessing), slurm
+  --slurm-submitter FNAME  define the path to the batch script which will be passed to sbatch     
+  --slurm-outdir DIRNAME   define the directory for the output of single tasks (default: current directory)
+  --report, -r FN          computation report file (default: stderr)
+  --user U                 user_id for the report (default: getpass.getuser())
+  --system S               system_id for the report (default: socket.gethostname())
+  --reason R               reason field for the report (default: None)
+  --params FNAME           YAML file with additional parameters (default: None)
+  --verbose, -v            be verbose
+  --version, -V            show script version
+  --help, -h               show this help message
 """
 
 from schema import Or
@@ -72,6 +77,7 @@ import sys
 import snacli
 from prenacs import BatchComputation, __version__
 from prenacs.commands import helpers as scripts_helpers
+
 
 def main(args):
   batch_computation = BatchComputation(args["<plugin>"], args["--verbose"])
@@ -116,7 +122,5 @@ with snacli.args(scripts_helpers.report.SNAKE_ARGS,
                  log=["--out", "--log"],
                  params=["<globpattern>", "<idsfile>", "<col>", "--verbose",
                          "--skip", "--mode", "--slurm-outdir", "--slurm-tmpdir"],
-                 docvars={"common": scripts_helpers.common.ARGS_DOC,
-                          "report_opts": scripts_helpers.report.ARGS_DOC},
                  version=__version__) as args:
   if args: main(validated(args))

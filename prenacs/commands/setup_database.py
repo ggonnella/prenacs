@@ -8,14 +8,20 @@
 Create the tables for storing attribute, plugin and computation metadata.
 
 Usage:
-  prenacs setup-database [options] {db_args_usage}
+  prenacs setup-database [options] \
+      <dbuser> <dbpass> <dbname> <dbsocket>
 
 Arguments:
-{db_args}
+  dbuser:       database user to use
+  dbpass:       password of the database user
+  dbname:       database name
+  dbsocket:     connection socket file
 
 Options:
-{db_opts}
-{common}
+  --dbpfx PFX              database tablenames prefix to use (default: prenacs_)
+  --verbose, -v            be verbose
+  --version, -V            show script version
+  --help, -h               show this help message
 """
 from sqlalchemy import create_engine
 import snacli
@@ -36,9 +42,5 @@ def validated(args):
 
 with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                  params=["--verbose"],
-                 docvars={"common": scripts_helpers.common.ARGS_DOC,
-                          "db_opts": scripts_helpers.database.OPTS_DOC,
-                          "db_args": scripts_helpers.database.ARGS_DOC,
-                          "db_args_usage": scripts_helpers.database.ARGS_USAGE},
                  version=__version__) as args:
   if args: main(validated(args))

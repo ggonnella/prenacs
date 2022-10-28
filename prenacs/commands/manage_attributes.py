@@ -11,10 +11,14 @@ Optionally remove attribute columns and definition records which are not
 present in the YAML file.
 
 Usage:
-  prenacs manage-attributes [options] {db_args_usage} <definitions>
+  prenacs manage-attributes [options] \
+      <dbuser> <dbpass> <dbname> <dbsocket> <definitions>
 
 Arguments:
-{db_args}
+  dbuser:       database user to use
+  dbpass:       password of the database user
+  dbname:       database name
+  dbsocket:     connection socket file
   definitions:  YAML file containing the attribute definitions
 
 Options:
@@ -23,8 +27,10 @@ Options:
   --check          check consistency of definition records and attribute columns
   --update         update definitions if changed
   --testmode       use the parameters for tests
-{db_opts}
-{common}
+  --dbpfx PFX              database tablenames prefix to use (default: prenacs_)
+  --verbose, -v            be verbose
+  --version, -V            show script version
+  --help, -h               show this help message
 """
 from schema import And, Or, Use
 import yaml
@@ -67,9 +73,5 @@ with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                  input=["<definitions>"],
                  params=["--drop", "--check", "--update", "--testmode",
                          "--verbose", "--dbpfx"],
-                 docvars={"common": scripts_helpers.common.ARGS_DOC,
-                          "db_args": scripts_helpers.database.ARGS_DOC,
-                          "db_opts": scripts_helpers.database.OPTS_DOC,
-                          "db_args_usage": scripts_helpers.database.ARGS_USAGE},
                  version=__version__) as args:
   if args: main(validated(args))
