@@ -8,7 +8,7 @@
 Load computation results into DB from a TSV file and a computation report.
 
 Usage:
-  prenacs-load-results [options] {db_args_usage}
+  prenacs load-results [options] {db_args_usage}
                              <results> <report> <plugin>
 
 Arguments:
@@ -32,8 +32,10 @@ import os
 from sqlalchemy import create_engine
 import snacli
 from attrtables import AttributeValueTables
-from prenacs import scripts_helpers, ResultsLoader, AttributeDefinition
+from prenacs import ResultsLoader, AttributeDefinition, \
+                    __version__
 from prenacs.database import DEFAULT_AVT_PREFIX
+from prenacs.commands import helpers as scripts_helpers
 
 def main(args):
   if os.stat(args["<results>"]).st_size == 0:
@@ -73,5 +75,5 @@ with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                           "db_args": scripts_helpers.database.ARGS_DOC,
                           "db_opts": scripts_helpers.database.OPTS_DOC,
                           "db_args_usage": scripts_helpers.database.ARGS_USAGE},
-                 version="1.0") as args:
+                 version=__version__) as args:
   if args: main(validated(args))

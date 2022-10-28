@@ -10,8 +10,8 @@ specified Python/Nim/Rust plugin module (see plugins/README.md for the plugins
 specification).
 
 Usage:
-  prenacs-batch-compute <plugin> ids <idsfile> [<col>] [options]
-  prenacs-batch-compute <plugin> files <globpattern> [options]
+  prenacs batch-compute <plugin> ids <idsfile> [<col>] [options]
+  prenacs batch-compute <plugin> files <globpattern> [options]
 
 The compute function is applied to each input ID or filename (see below).
 Unless --skip is used and the input ID (or ID computed from the filename)
@@ -70,7 +70,8 @@ from schema import Or
 import os
 import sys
 import snacli
-from prenacs import BatchComputation, scripts_helpers
+from prenacs import BatchComputation, __version__
+from prenacs.commands import helpers as scripts_helpers
 
 def main(args):
   batch_computation = BatchComputation(args["<plugin>"], args["--verbose"])
@@ -117,5 +118,5 @@ with snacli.args(scripts_helpers.report.SNAKE_ARGS,
                          "--skip", "--mode", "--slurm-outdir", "--slurm-tmpdir"],
                  docvars={"common": scripts_helpers.common.ARGS_DOC,
                           "report_opts": scripts_helpers.report.ARGS_DOC},
-                 version="1.0") as args:
+                 version=__version__) as args:
   if args: main(validated(args))

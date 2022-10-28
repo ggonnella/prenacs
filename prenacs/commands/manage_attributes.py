@@ -11,7 +11,7 @@ Optionally remove attribute columns and definition records which are not
 present in the YAML file.
 
 Usage:
-  prenacs-manage-attributes [options] {db_args_usage} <definitions>
+  prenacs manage-attributes [options] {db_args_usage} <definitions>
 
 Arguments:
 {db_args}
@@ -31,10 +31,10 @@ import yaml
 from sqlalchemy import create_engine
 import snacli
 from attrtables import AttributeValueTables
-from prenacs import scripts_helpers,\
-                    AttributeDefinitionsManager,\
-                    AttributeDefinition
+from prenacs import AttributeDefinitionsManager,\
+                    AttributeDefinition, __version__
 from prenacs.database import DEFAULT_AVT_PREFIX
+from prenacs.commands import helpers as scripts_helpers
 
 def main(args):
   engine = create_engine(scripts_helpers.database.connection_string_from(args),
@@ -71,5 +71,5 @@ with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                           "db_args": scripts_helpers.database.ARGS_DOC,
                           "db_opts": scripts_helpers.database.OPTS_DOC,
                           "db_args_usage": scripts_helpers.database.ARGS_USAGE},
-                 version="1.0") as args:
+                 version=__version__) as args:
   if args: main(validated(args))

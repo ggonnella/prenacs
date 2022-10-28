@@ -16,7 +16,7 @@ The following is checked:
   contained in the given attribute definitions file
 
 Usage:
-  prenacs-check-plugin <plugin> <definitions> [options]
+  prenacs check-plugin <plugin> <definitions> [options]
 
 Arguments:
   plugin:       Python or Nim batch_compute.py plugin module
@@ -30,7 +30,8 @@ from schema import And, Use, Or
 import yaml
 import os
 import snacli
-from prenacs import PluginInterfaceAnalyser, scripts_helpers
+from prenacs import PluginInterfaceAnalyser, __version__
+from prenacs.commands import helpers as scripts_helpers
 
 def main(args):
   analyser = PluginInterfaceAnalyser(args["<plugin>"],
@@ -43,5 +44,5 @@ def validated(args):
 
 with snacli.args(input=["<plugin>", "<definitions>"],
                  docvars={"common": scripts_helpers.common.ARGS_DOC},
-                 version="0.1") as args:
+                 version=__version__) as args:
   if args: main(validated(args))

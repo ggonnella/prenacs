@@ -8,7 +8,7 @@
 Destroy the entire database
 
 Usage:
-  prenacs-destroy-database [options] {db_args_usage}
+  prenacs destroy-database [options] {db_args_usage}
 
 Arguments:
 {db_args}
@@ -22,7 +22,8 @@ from sqlalchemy import create_engine
 import snacli
 from attrtables import AttributeValueTables
 import prenacs.database
-from prenacs import scripts_helpers, AttributeDefinition
+from prenacs import AttributeDefinition, __version__
+from prenacs.commands import helpers as scripts_helpers
 
 def main(args):
   engine = create_engine(scripts_helpers.database.connection_string_from(args),
@@ -47,5 +48,5 @@ with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                           "db_opts": scripts_helpers.database.OPTS_DOC,
                           "db_args": scripts_helpers.database.ARGS_DOC,
                           "db_args_usage": scripts_helpers.database.ARGS_USAGE},
-                 version="1.0") as args:
+                 version=__version__) as args:
   if args: main(validated(args))

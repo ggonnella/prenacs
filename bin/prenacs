@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""
+Run a batch computation, load the results to a database and manage the database
+
+Usage:
+  prenacs <command> [<args>...]
+
+Available commands:
+  array-task         Runs a plugin in a array task
+  batch-compute      Start a batch computation
+  check-plugin       Check if a plugin is valid
+  create-attribute   Create a new attribute
+  destroy-database   Destroy the database
+  drop-attribute     Drop an attribute
+  load-results       Load computation results to the database
+  manage-attributes  Manage attribute records in the database
+  setup-database     Setup the database
+
+See 'prenacs <command> --help' for more information on a specific command.
+
+"""
+from docopt import docopt
+from prenacs import __version__, error, logger
+from prenacs.commands import _support
+
+if __name__ == '__main__':
+  args = docopt(__doc__, version=__version__, options_first=True)
+  command = args['<command>']
+  if command == 'array-task':
+    import prenacs.commands.array_task as cmd
+  elif command == 'batch-compute':
+    import prenacs.commands.batch_compute as cmd
+  elif command == 'check-plugin':
+    import prenacs.commands.check_plugin as cmd
+  elif command == 'create-attribute':
+    import prenacs.commands.create_attribute as cmd
+  elif command == 'destroy-database':
+    import prenacs.commands.destroy_database as cmd
+  elif command == 'drop-attribute':
+    import prenacs.commands.drop_attribute as cmd
+  elif command == 'load-results':
+    import prenacs.commands.load_results as cmd
+  elif command == 'manage-attributes':
+    import prenacs.commands.manage_attributes as cmd
+  elif command == 'setup-database':
+    import prenacs.commands.setup_database as cmd
+  else:
+    exit(f"'{command}' is not a prenacs command.\n"+\
+        "See prenacs --help.")
+  argv = [command] + args["<args>"]
+  cmd_args = docopt(cmd.__doc__, version=__version__, argv=argv)
+  _support.setup_verbosity(cmd_args)
+  try:
+    cmd.main(cmd_args)
+  except (error.PrenacsError, FileNotFoundError) as e:
+    logger.error(e)
+    exit(1)

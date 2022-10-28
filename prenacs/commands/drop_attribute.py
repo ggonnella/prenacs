@@ -9,7 +9,7 @@ Drop an attribute definition record and attribute columns in the
 attribute_value tables.
 
 Usage:
-  prenacs-drop-attribute [options] {db_args_usage} <name>
+  prenacs drop-attribute [options] {db_args_usage} <name>
 
 Arguments:
 {db_args}
@@ -23,10 +23,10 @@ from schema import And, Or
 from sqlalchemy import create_engine
 import snacli
 from attrtables import AttributeValueTables
-from prenacs import scripts_helpers,\
-                    AttributeDefinitionsManager,\
-                    AttributeDefinition
+from prenacs import AttributeDefinitionsManager,\
+                    AttributeDefinition, __version__
 from prenacs.database import DEFAULT_AVT_PREFIX
+from prenacs.commands import helpers as scripts_helpers
 
 def main(args):
   engine = create_engine(scripts_helpers.database.connection_string_from(args),
@@ -55,5 +55,5 @@ with snacli.args(scripts_helpers.database.SNAKE_ARGS,
                           "db_opts": scripts_helpers.database.OPTS_DOC,
                           "db_args": scripts_helpers.database.ARGS_DOC,
                           "db_args_usage": scripts_helpers.database.ARGS_USAGE},
-                 version="1.0") as args:
+                 version=__version__) as args:
   if args: main(validated(args))
