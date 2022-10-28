@@ -1,0 +1,16 @@
+rule nooutput:
+  input:
+    i1="testdata/input1",
+    i2="testdata/input2",
+    i3="testdata/input3",
+    x="testdata/x"
+  params:
+    p1="param1",
+    p2="param2",
+    p3=True,
+    z=True
+  script:
+    "nooutput.py"
+
+onsuccess:
+  shell("touch testdata/input1 testdata/input2 testdata/input3 testdata/x")

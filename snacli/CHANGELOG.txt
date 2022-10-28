@@ -1,0 +1,9 @@
+=== 1.2 ===
+- fix package requirements system
+
+=== 1.1 ===
+- added CHANGELOG and CONTRIBUTORS
+- added copyright notices and ISC license text
+
+=== 1.0 ===
+- initial release

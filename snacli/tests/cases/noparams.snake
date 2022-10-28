@@ -1,0 +1,16 @@
+rule noparams:
+  input:
+    i1="testdata/input1",
+    i2="testdata/input2",
+    i3="testdata/input3",
+    x="testdata/x"
+  output:
+    o1=touch("test_out/output1"),
+    o2=touch("test_out/output2"),
+    o3=touch("test_out/output3"),
+    y=touch("test_out/y")
+  script:
+    "noparams.py"
+
+onsuccess:
+  shell("touch testdata/input1 testdata/input2 testdata/input3 testdata/x")

@@ -1,0 +1,13 @@
+rule noinput:
+  output:
+    o1=touch("test_out/output1"),
+    o2=touch("test_out/output2"),
+    o3=touch("test_out/output3"),
+    y=touch("test_out/y")
+  params:
+    p1="param1",
+    p2="param2",
+    p3=True,
+    z=True
+  script:
+    "noinput.py"
