@@ -1,5 +1,5 @@
 #
-# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+# (c) 2021-2023 Giorgio Gonnella, University of Goettingen, Germany
 #
 COMPUTE_PLUGIN_INTERFACE = {}
 COMPUTE_PLUGIN_INTERFACE["req_func"] = ["compute"]
@@ -13,6 +13,15 @@ IDPROC_PLUGIN_INTERFACE = {}
 IDPROC_PLUGIN_INTERFACE["req_func"] = ["compute_id"]
 
 def plugin_metadata_str(plugin):
+  """
+  Collects the metadata of a plugin.
+
+  Args:
+    plugin: a plugin module
+
+  Returns:
+    A dictionary with string values, containing the metadata of the plugin.
+  """
   metadata_keys = COMPUTE_PLUGIN_INTERFACE["req_const"] + \
                   COMPUTE_PLUGIN_INTERFACE["opt_const"]
   result = {k.lower(): getattr(plugin, k) \

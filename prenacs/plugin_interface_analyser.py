@@ -1,10 +1,6 @@
 #
-# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+# (c) 2021-2023 Giorgio Gonnella, University of Goettingen, Germany
 #
-"""
-Analyses the interface of a computation plugin for compliance
-with the interface specification.
-"""
 
 import sys
 import inspect
@@ -12,6 +8,10 @@ import multiplug
 from loguru import logger
 
 class PluginInterfaceAnalyser():
+  """
+  Analyses the interface of a computation plugin for compliance
+  with the interface specification.
+  """
 
   def __init__(self, plugin, verbose=True, outfile=sys.stdout, colorize=True):
     self.plugin = multiplug.importer(plugin, verbose=verbose)
@@ -149,15 +149,28 @@ class PluginInterfaceAnalyser():
                 f"string: {s} of {element}")
 
   def run(self, definitions=None):
-    if self.plugin.__lang__ != "python":
-      self._info("signature of plugin functions not analyzed, "+\
-          " since it is a {} plugin", self.plugin.__lang__)
-    self._check_compute_function()
-    self._check_initialize_function()
-    self._check_finalize_function()
-    self._check_mandatory_constants()
-    self._check_string_constants()
-    self._check_output_constant(definitions)
-    self._check_parameters_constant()
-    return 1 if self.had_errors else 0
+      """
+      Runs the analysis on the plugin interface for compliance with the
+      interface specification.
+
+      The method checks the compute, initialize, and finalize functions, as well
+      as the mandatory and string constants. If a `definitions` parameter is
+      provided, it also checks the output and parameters constants against it.
+
+      If the plugin is not written in Python, the signature of plugin functions
+      will not be analyzed (but only their presence).
+
+      Returns 1 if there were errors found, 0 otherwise.
+      """
+      if self.plugin.__lang__ != "python":
+        self._info("signature of plugin functions not analyzed, "+\
+            " since it is a {} plugin", self.plugin.__lang__)
+      self._check_compute_function()
+      self._check_initialize_function()
+      self._check_finalize_function()
+      self._check_mandatory_constants()
+      self._check_string_constants()
+      self._check_output_constant(definitions)
+      self._check_parameters_constant()
+      return 1 if self.had_errors else 0
 

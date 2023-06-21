@@ -1,5 +1,5 @@
 #
-# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+# (c) 2021-2023 Giorgio Gonnella, University of Goettingen, Germany
 #
 from .batch_computation import BatchComputation
 from .plugin_interface_analyser import PluginInterfaceAnalyser
@@ -17,12 +17,19 @@ logger.disable(__name__)
 import sys
 
 def enable_logger(level):
+  """
+  Enables logging for the prenacs package with the specified level.
+
+  Args:
+    level: The logging level to set
+      (e.g., 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
+  """
   logger.remove()
   logger.enable("prenacs")
   msgformat_prefix="<green><dim>{time:YYYY-MM-DD HH:mm:ss}</></>"
   msgformat_content="<level><normal>{level.name}: {message}</></>"
   logger.add(sys.stderr, format=f"{msgformat_prefix} {msgformat_content}",
-             level=level)
+       level=level)
 
 # create a flag to enable/disable progress bar; disable it by default;
 # the method tqdm will respect this flag and behave like tqdm.tqdm;

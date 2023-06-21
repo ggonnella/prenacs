@@ -1,11 +1,19 @@
 #
-# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+# (c) 2021-2023 Giorgio Gonnella, University of Goettingen, Germany
 #
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from prenacs.dbschema.attribute_definition import AttributeDefinition
 
 class AttributeDefinitionsManager():
+  """
+  Manage attribute definitions in a database.
+
+  Methods for updating, dropping, and inserting attribute definitions in a
+  database.
+
+  :param attribute_value_tables: an instance of AttributeValueTables
+  """
 
   def __init__(self, attribute_value_tables):
     self.avt = attribute_value_tables
@@ -119,13 +127,44 @@ class AttributeDefinitionsManager():
           self.avt.create_attribute(aname, **adef)
 
   def apply_definition(self, aname, definition):
-    if aname not in self.avt.attribute_names:
-      self.avt.create_attribute(aname, **definition)
-    else:
-      self.update(aname, definition)
+      """
+      Apply a definition to an attribute in the database.
 
+      If the attribute already exists in the database, its definition is updated
+      with the new values. Otherwise, a new attribute is created with the given
+      definition.
+
+      :param aname: the name of the attribute to apply the definition to
+      :param definition: the definition of the attribute, as a dictionary
+      """
+      if aname not in self.avt.attribute_names:
+        self.avt.create_attribute(aname, **definition)
+      else:
+        self.update(aname, definition)
+
+def apply_definitions(self, definitions, drop_missing=True,
+            insert_new=True, update_changed=True):
+  """
+  Apply a set of attribute definitions to the database.
+
+  Drops missing attributes, inserts new attributes, and updates changed
+  attributes. The behavior of each operation can be controlled by the
+  corresponding boolean flags.
+
+  :param definitions: a dictionary containing the attribute names as keys and
+            the attribute definitions as values
+  :param drop_missing: a boolean flag indicating whether to drop missing
+             attributes (default: True)
+  :param insert_new: a boolean flag indicating whether to insert new
+             attributes (default: True)
+  :param update_changed: a boolean flag indicating whether to update changed
+               attributes (default: True)
+  """
   def apply_definitions(self, definitions, drop_missing=True,
                         insert_new=True, update_changed=True):
-    if drop_missing:   self.drop_missing(definitions)
-    if insert_new:     self.insert_new(definitions)
-    if update_changed: self.update_changed(definitions)
+    if drop_missing:
+      self.drop_missing(definitions)
+    if insert_new:
+      self.insert_new(definitions)
+    if update_changed:
+      self.update_changed(definitions)

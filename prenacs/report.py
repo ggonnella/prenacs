@@ -1,5 +1,5 @@
 #
-# (c) 2021-2022 Giorgio Gonnella, University of Goettingen, Germany
+# (c) 2021-2023 Giorgio Gonnella, University of Goettingen, Germany
 #
 
 import yaml
@@ -10,8 +10,25 @@ import socket
 import getpass
 
 class Report():
+  """
+  A class for creating and writing reports to a file.
+
+  Attributes:
+    data (dict): A dictionary containing the report data.
+    rfile (file): The file object to write the report to.
+    n_steps (int): The number of steps in the report.
+  """
 
   REASONS = ["new_entities", "new_attributes", "recompute"]
+  """
+    A list of valid reasons for running a computation.
+
+    The reasons are:
+      - new_entities: add new entities to the database
+      - new_attributes: add new attributes to the database
+      - recompute: recompute attributes for existing entities
+                   (e.g. with a different parameter setting or method)
+  """
 
   def _init_plugin(self, plugin):
     if plugin is None:
@@ -58,18 +75,33 @@ class Report():
     self.n_steps = 0
 
   def step(self):
+    """
+    Increments the number of steps in the report by 1.
+    """
     self.n_steps += 1
 
   def finalize(self):
-    self.data["time_end"] = str(datetime.now())
-    self.data["n_units"] = self.n_steps
-    self.data["comp_status"] = "completed"
-    yaml.dump(self.data, self.rfile)
-    self.rfile.flush()
-    if self.rfile != sys.stderr:
-      self.rfile.close()
+      """
+      Finalizes the report by adding the end time, number of units, and
+      computation status to the report data. Then, it dumps the report data to
+      the report file, flushes the file, and closes it.
+      """
+      self.data["time_end"] = str(datetime.now())
+      self.data["n_units"] = self.n_steps
+      self.data["comp_status"] = "completed"
+      yaml.dump(self.data, self.rfile)
+      self.rfile.flush()
+      if self.rfile != sys.stderr:
+        self.rfile.close()
 
   def error(self, err, unitname):
+    """
+    Adds an error message to the report data and finalizes the report.
+
+    Args:
+      err (Exception): The exception object containing the error message.
+      unitname (str): The name of the unit where the error occurred.
+    """
     self.data["time_end"] = str(datetime.now())
     self.data["n_units"] = self.n_steps
     self.data["comp_status"] = "aborted" if self.n_steps == 0 else "partial"
